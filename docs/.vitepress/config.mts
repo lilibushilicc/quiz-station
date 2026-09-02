@@ -18,6 +18,7 @@ const nav = [
 ]
 
 export default defineConfig({
+  base: '/quiz-station/',
   lang: 'zh-CN',
   title: '知识点掌握巩固',
   description: '把笔记变成题目，随学随练',
