@@ -95,23 +95,26 @@ docs/                      VitePress 站点
 
 ## 部署
 
-站点是纯静态的，构建产物 `docs/.vitepress/dist` 扔到任意静态托管即可。
-已准备好一键部署脚本（`scripts/deploy-inner.mjs`），前提：先 `wrangler login`，且域名 NS 已在 Cloudflare。
+站点是纯静态的，推到 `main` 分支即触发 GitHub Actions 自动校验、构建并发布到 **GitHub Pages**
+（工作流见 `.github/workflows/deploy.yml`）。**无需任何 Cloudflare 凭证 / Token / R2**。
+
+- 站点地址：`https://lilibushilicc.github.io/quiz-station/`
+- 自定义域名：在仓库 **Settings → Pages → Custom domain** 填 `quiz.270312.xyz`，
+  并在 Cloudflare 加一条 CNAME `quiz` → `lilibushilicc.github.io`（开启代理 / 橙云做 CDN 加速），
+  Cloudflare **SSL/TLS 模式设为 `Full`**。`docs/public/CNAME` 已写入该域名，会自动随部署生效。
+
+改题 / 加题的标准流程就是：**编辑 `data/banks/*.yaml` → `git push` → Actions 自动部署**。
+因为 qid 稳定，老进度 / 错题 / 掌握度不会丢。
 
 ```bash
-wrangler login                 # 首次部署前登录
-npm run build                  # 本地先 build 一次验证无误
-npm run deploy                 # 上传题库到 R2 + 部署 Pages
+npm run dev        # 本地预览 http://localhost:5173
+npm run build      # 构建产物在 docs/.vitepress/dist（CI 里自动跑）
 ```
 
-部署脚本会做三件事：构建 → 把 `banks.json` 上传到 R2 桶 `noteandblog` 的 `quiz/banks.json`
-→ 把 `docs/.vitepress/dist` 部署到 Cloudflare Pages 项目 `quiz-station`。
-之后在 Cloudflare Pages 控制台绑定自定义域 `quiz.270312.xyz` 即可。
+### 改题热更新（可选，需 R2 等可达地址）
 
-### 改题热更新（可选，推荐）
-
-默认页面加载本地打包的 `banks.json`。要做成「改题不用重新部署站点」，在
-`docs/.vitepress/config.mts` 的 `themeConfig` 里加一行：
+默认页面加载随站点一起打包的 `banks.json`。要做成「改题不重新部署站点」，把题库放到
+可达地址（如 R2 公开 URL）并在 `docs/.vitepress/config.mts` 的 `themeConfig` 里填：
 
 ```ts
 themeConfig: {
@@ -119,10 +122,5 @@ themeConfig: {
 }
 ```
 
-把地址换成你 R2 桶的公开 URL（先 `wrangler r2 bucket dev-url enable noteandblog` 开启）。
 开启后页面优先拉远端题库，只覆盖上传那个 JSON 就生效，站点本身不用重新部署。
-
-### 换到别的托管
-
-腾讯 EdgeOne Pages / GitHub Pages / Vercel 都一样：把 `docs/.vitepress/dist` 当静态目录上传。
-若想保留热更新，把 `banks.json` 放到对应可达位置再填 `banksUrl` 即可。
+（仅用 GitHub Pages 时这一项留空即可，题库随每次 push 自动更新。）
