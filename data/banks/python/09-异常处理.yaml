@@ -103,3 +103,198 @@ questions:
     explain: "类型对但值不合法是 ValueError；类型本身不对（比如 int(None)）才是 TypeError。区分二者有助于写出精确的 except 子句。"
     tags: [异常, 易错]
     difficulty: 2
+
+  - qid: py-09-009
+    type: single
+    stem: "下面哪个错误在普通代码里不可能被 try/except 捕获？"
+    options:
+      - text: "ValueError"
+      - text: "ZeroDivisionError"
+      - text: "SyntaxError（写在普通代码里的语法错误）"
+      - text: "FileNotFoundError"
+    answer: [2]
+    explain: "语法错误在编译成字节码阶段就失败，整个文件根本没运行，try 没机会执行。但 eval() 动态执行的代码里的语法错误可以捕获。"
+    tags: [异常, 易错]
+    difficulty: 2
+
+  - qid: py-09-010
+    type: single
+    stem: "`except Exception:` 无法捕获下面哪一类『退出意图』？"
+    options:
+      - text: "ValueError"
+      - text: "TypeError"
+      - text: "KeyboardInterrupt 和 SystemExit（它们直接继承 BaseException）"
+      - text: "RuntimeError"
+    answer: [2]
+    explain: "KeyboardInterrupt、SystemExit 直接继承 BaseException 而非 Exception，所以 except Exception 不会吞掉 Ctrl+C 和 sys.exit()——这正是设计意图。永远捕获 Exception，不要捕获 BaseException。"
+    tags: [异常, 易错]
+    difficulty: 3
+
+  - qid: py-09-011
+    type: single
+    stem: "下面哪段 except 顺序会让后面的分支变成永远执行不到的死代码？"
+    options:
+      - text: "except FileNotFoundError: ... 再 except OSError: ..."
+      - text: "except ValueError: ... 再 except TypeError: ..."
+      - text: "except IndexError: ... 再 except KeyError: ..."
+      - text: "except StopIteration: ... 再 except RuntimeError: ..."
+    answer: [0]
+    explain: "FileNotFoundError 是 OSError 的子类，写在前面才能命中；反过来 OSError 在前会把所有子类都截走。Python 不会报错也不会警告，需自己注意从具体到宽泛。"
+    tags: [异常, 易错]
+    difficulty: 3
+
+  - qid: py-09-012
+    type: single
+    stem: "执行 `{'a': 1}['b']` 抛出的 KeyError，其错误消息内容是？"
+    options:
+      - text: "'dict 中不存在键 b'"
+      - text: "'b'（仅键名本身，带引号）"
+      - text: "KeyError: missing key"
+      - text: "空字符串"
+    answer: [1]
+    explain: "KeyError 的消息只有键本身（带引号），生产日志里信息太少。常需补充上下文，或 raise 新的业务异常并 `from e` 保留原始链接。"
+    tags: [异常, 易错]
+    difficulty: 2
+
+  - qid: py-09-013
+    type: code
+    stem: "捕获异常后记录日志，再原样重新抛出（保留原始堆栈）。"
+    template: |
+      try:
+          risky()
+      except ValueError:
+          log_error()
+          {{blank}}
+    blanks: ["raise"]
+    explain: "裸 raise（不带任何东西）会重新抛出当前正在处理的异常，并保留完整的原始调用栈。不要用 `raise e`，那会重置堆栈起点、丢失真正出错的行。"
+    tags: [异常]
+    difficulty: 2
+
+  - qid: py-09-014
+    type: single
+    stem: "把余额检查写成 `assert amount <= balance, '余额不足'`，然后用 `python -O` 启动程序，后果是？"
+    options:
+      - text: "仍会照常校验，安全"
+      - text: "所有 assert 被整行跳过，余额检查形同虚设，可透支"
+      - text: "报 SyntaxError"
+      - text: "报 AssertionError"
+    answer: [1]
+    explain: "-O 优化模式会移除所有 assert，因此它绝不能用于用户输入、权限、业务规则等『生产环境也必须生效』的检查，应改用显式 raise ValueError。"
+    tags: [异常, 易错]
+    difficulty: 3
+
+  - qid: py-09-015
+    type: single
+    stem: "自定义异常只设置了 `self.code = code` 却忘了调用 `super().__init__()`，那么 `str(e)` 会是？"
+    options:
+      - text: "正常的错误消息"
+      - text: "空字符串"
+      - text: "报错"
+      - text: "返回类名"
+    answer: [1]
+    explain: "不调用父类构造，Exception 的 message 没被设置，str(e) 返回空，日志里什么都看不到。正确做法：先 super().__init__(\"错误消息\") 再设自定义字段。"
+    tags: [异常, 易错]
+    difficulty: 2
+
+  - qid: py-09-016
+    type: single
+    stem: "Python 自定义异常类的命名惯例是？"
+    options:
+      - text: "以 Exception 结尾"
+      - text: "以 Error 结尾（如 ValueError、OrderError）"
+      - text: "以 Fault 结尾"
+      - text: "没有任何约定"
+    answer: [1]
+    explain: "Python 惯例异常类以 Error 结尾，和 Java 的 XxxException 不同。它们都应继承 Exception（不要继承 BaseException），并可建模块级基类。"
+    tags: [异常]
+    difficulty: 2
+
+  - qid: py-09-017
+    type: single
+    stem: "用 `raise LookupError('用户不存在') from None` 替换底层的 KeyError 后，Traceback 会怎样？"
+    options:
+      - text: "仍然显示原始 KeyError"
+      - text: "隐藏原始异常，只显示 LookupError，不暴露内部实现细节"
+      - text: "报 SyntaxError"
+      - text: "变成同时显示两个独立异常"
+    answer: [1]
+    explain: "from None 会切断异常上下文，不暴露底层（例如内部用字典存储这一实现细节）。想保留原因应用 `raise ... from e`。"
+    tags: [异常]
+    difficulty: 3
+
+  - qid: py-09-018
+    type: single
+    stem: "字典取值时『键可能不存在』，下面哪种写法更合适？"
+    options:
+      - text: "用 try/except 捕获 KeyError 再返回 None"
+      - text: "return d.get(k)"
+      - text: "两种都不行，必须用 if 'k' in d: raise"
+      - text: "必须用 assert"
+    answer: [1]
+    explain: "键不存在是正常分支而非意外错误，用 d.get(k) 直接返回默认值即可，无需 try/except。异常应留给真正意外的错误（EAFP 适合罕见错误，常见分支用 LBYL/默认值）。"
+    tags: [异常, 最佳实践]
+    difficulty: 2
+
+  - qid: py-09-019
+    type: single
+    stem: "关于在多层调用中记录异常日志，最佳实践是？"
+    options:
+      - text: "每一层捕获都调用 logger.exception 记一次"
+      - text: "只在能真正处理异常的那一层记录一次"
+      - text: "统一用 print 打印异常"
+      - text: "完全不记录异常"
+    answer: [1]
+    explain: "同一个异常被多层重复记录会刷屏且冗余。应在最外层统一异常处理器记一次（带完整堆栈），中间层若没有额外信息就让它向上传播，什么都不做。"
+    tags: [异常, 日志]
+    difficulty: 2
+
+  - qid: py-09-020
+    type: single
+    stem: "Web 接口捕获到未预期异常，对外的 HTTP 响应应该？"
+    options:
+      - text: "把数据库原始报错（含 SQL、表名、路径）直接返回给前端"
+      - text: "返回通用错误消息 + trace_id，详细堆栈只记在内部日志里"
+      - text: "返回完整 Traceback 文本"
+      - text: "返回空响应"
+    answer: [1]
+    explain: "暴露内部细节有安全和信息泄露风险。正确做法：内部记详细日志并附 trace_id，对外只给通用提示，用户凭 trace_id 报障时可精确定位。"
+    tags: [异常, 最佳实践]
+    difficulty: 2
+
+  - qid: py-09-021
+    type: single
+    stem: "Python 3.11 引入的 `except*` 主要用来？"
+    options:
+      - text: "捕获单个异常"
+      - text: "分组捕获 ExceptionGroup 里的多个子异常，且多个匹配分支都可能执行"
+      - text: "替代普通的 try/except"
+      - text: "捕获语法错误"
+    answer: [1]
+    explain: "except* 能分别匹配异常组里不同类型的子异常，每个匹配分支都可能执行，主要服务 asyncio 并发多任务场景。日常业务代码几乎用不上。"
+    tags: [异常]
+    difficulty: 3
+
+  - qid: py-09-022
+    type: code
+    stem: "补全：明确只忽略『文件不存在』这一种异常（而不是裸 except 吞掉一切）。"
+    template: |
+      from contextlib import suppress
+      with {{blank}}(FileNotFoundError):
+          os.remove(temp_file)
+    blanks: [suppress]
+    explain: "contextlib.suppress(FileNotFoundError) 意图一目了然，只忽略指定异常；比 `except: pass` 安全得多，也不会误吞 KeyboardInterrupt。"
+    tags: [异常, 最佳实践]
+    difficulty: 2
+
+  - qid: py-09-023
+    type: single
+    stem: "try 块抛出的异常没有被任何 except 捕获时，finally 块还会执行吗？"
+    options:
+      - text: "不会，异常直接终止程序"
+      - text: "会，finally 在异常继续向上传播之前执行"
+      - text: "只在存在 except 分支时才执行"
+      - text: "取决于异常的类型"
+    answer: [1]
+    explain: "无论是 try 正常结束、被 except 捕获、还是未被捕获而向上传播，finally 都会执行（在异常传播前）。这也包括 try 里有 return/break/continue 的情况。"
+    tags: [异常]
+    difficulty: 2

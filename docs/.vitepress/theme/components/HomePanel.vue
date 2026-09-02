@@ -170,10 +170,14 @@ async function onImport(e) {
   margin: 0 0 10px;
 }
 .hp-hero h1 {
-  font-size: 33px;
-  font-weight: 500;
+  font-size: 36px;
+  font-weight: 600;
   letter-spacing: -0.02em;
-  margin: 0 0 10px;
+  margin: 0 0 12px;
+  background: var(--q-accent-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 .hp-sub {
   font-size: 14.5px;
@@ -255,21 +259,37 @@ async function onImport(e) {
   gap: 12px;
 }
 .hp-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   gap: 16px;
-  padding: 18px 18px 15px;
+  padding: 20px 20px 16px;
   border: 1px solid var(--q-border);
   border-radius: var(--q-radius);
   background: var(--q-surface);
   color: var(--q-text);
-  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  overflow: hidden;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.hp-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--q-accent-grad);
+  opacity: 0;
+  transition: opacity 0.2s ease;
 }
 .hp-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--q-accent);
-  box-shadow: var(--q-shadow);
+  transform: translateY(-3px);
+  border-color: transparent;
+  box-shadow: var(--q-shadow-accent);
+}
+.hp-card:hover::before {
+  opacity: 1;
 }
 .hp-card-top {
   display: flex;

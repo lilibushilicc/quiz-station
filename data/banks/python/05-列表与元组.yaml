@@ -126,3 +126,198 @@ questions:
     explain: "key 接收一个函数，对每个元素算出排序依据。sort 原地排序并返回 None，想要新列表用 sorted(items, ...)。"
     tags: [排序]
     difficulty: 2
+
+  - qid: py-05-011
+    type: single
+    stem: "执行 `nums = [3, 1, 2]; result = nums.sort(); print(result)`，输出是？"
+    options:
+      - text: "[1, 2, 3]"
+      - text: "None（sort 原地排序，返回值是 None）"
+      - text: "报错"
+      - text: "[3, 1, 2]"
+    answer: [1]
+    explain: "排序/反转/增删等原地方法都返回 None，真正的结果在原列表里。写 result = nums.sort() 会让 result 变成 None，是新手最常见错误。"
+    tags: [列表, 易错]
+    difficulty: 1
+
+  - qid: py-05-012
+    type: multiple
+    stem: "关于列表排序 `sorted()` 与 `list.sort()`，正确的是？"
+    options:
+      - text: "sorted() 返回一个新的已排序列表，原对象不变"
+      - text: "list.sort() 原地排序，返回值是 None"
+      - text: "sorted() 只能用于列表"
+      - text: "两者都会修改原列表"
+    answer: [0, 1]
+    explain: "sorted() 是内置函数，接受任何可迭代对象并返回新列表；list.sort() 是列表方法，原地排序返回 None。需要保留原顺序时用 sorted()。"
+    tags: [排序]
+    difficulty: 2
+
+  - qid: py-05-013
+    type: single
+    stem: "执行 `a = [1, 2]; b = a; a += [3, 4]; print(b)`，输出是？"
+    options:
+      - text: "[1, 2]"
+      - text: "[1, 2, 3, 4]（+= 等价于 extend，原地修改，b 也跟着变）"
+      - text: "报错"
+      - text: "[1, 2, 3, 4, 5]"
+    answer: [1]
+    explain: "列表的 += 会调用 __iadd__，等同于 extend，是原地修改；而 a = a + [3,4] 才是新建列表。b 和 a 指向同一个对象，所以都变了。"
+    tags: [列表, 易错]
+    difficulty: 3
+
+  - qid: py-05-014
+    type: single
+    stem: "执行 `c = [1, 2]; c.extend('ab'); print(c)`，结果是？"
+    options:
+      - text: "[1, 2, 'ab']"
+      - text: "[1, 2, 'a', 'b']（字符串也是可迭代对象，被拆成字符）"
+      - text: "[1, 2, ['a', 'b']]"
+      - text: "报错"
+    answer: [1]
+    explain: "extend 接受任何可迭代对象并逐个追加，字符串会被拆成单个字符。想整体加一个字符串要用 append('ab')。"
+    tags: [列表, 易错]
+    difficulty: 2
+
+  - qid: py-05-015
+    type: single
+    stem: "在 Python 列表里，找不到元素时 `list.index(x)` 会怎样？"
+    options:
+      - text: "返回 -1"
+      - text: "返回 None"
+      - text: "抛出 ValueError"
+      - text: "返回 0"
+    answer: [2]
+    explain: "和 Java 的 indexOf 返回 -1 不同，Python 的 index 找不到直接抛 ValueError。判断存在性一律用 in，别写 if lst.index(x) == -1。"
+    tags: [列表, 易错]
+    difficulty: 2
+
+  - qid: py-05-016
+    type: single
+    stem: "执行 `users = ['张三', '李四', '王五', '李四']; users.remove('李四'); print(users)`，结果是？"
+    options:
+      - text: "['张三', '王五']（两个李四都删了）"
+      - text: "['张三', '王五', '李四']（只删除第一个匹配项）"
+      - text: "报错：列表中有重复元素"
+      - text: "['张三', '李四', '王五']"
+    answer: [1]
+    explain: "remove 只删除第一个值等于 x 的元素，其余保留；元素不存在才会抛 ValueError。要删除全部匹配项用推导式或循环。"
+    tags: [列表]
+    difficulty: 2
+
+  - qid: py-05-017
+    type: single
+    stem: "执行 `nums = [0, 1, 2, 3, 4, 5]; nums[1:3] = [7]; print(nums)`，结果是？"
+    options:
+      - text: "[0, 1, 2, 3, 4, 5]"
+      - text: "[0, 7, 3, 4, 5]（切片赋值允许长度不一致，列表自动伸缩）"
+      - text: "[0, 7, 2, 3, 4, 5]"
+      - text: "报错"
+    answer: [1]
+    explain: "连续切片赋值允许左右长度不同，列表会相应变长或变短；但带步长的切片赋值（如 a[::2]=...）必须等长，否则 ValueError。"
+    tags: [列表, 切片]
+    difficulty: 3
+
+  - qid: py-05-018
+    type: single
+    stem: "执行 `a = [1, 2, 3]; b = a; a[:] = []; print(b)`，结果是？"
+    options:
+      - text: "[1, 2, 3]"
+      - text: "[]（a[:] = [] 原地清空，所有引用都看得到）"
+      - text: "报错"
+      - text: "[None]"
+    answer: [1]
+    explain: "a[:] = [] 是切片赋值，原地清空 a 指向的那个对象；而 a = [] 只是让 a 重新指向新列表，b 仍指向旧列表。让所有持有者都看到变化就用前者。"
+    tags: [列表, 易错]
+    difficulty: 3
+
+  - qid: py-05-019
+    type: single
+    stem: "执行 `for i, n in enumerate(['a', 'b'], start=1):`，i 的值依次是？"
+    options:
+      - text: "0, 1"
+      - text: "1, 2"
+      - text: "2, 3"
+      - text: "报错"
+    answer: [1]
+    explain: "enumerate 默认从 0 开始，start 参数可指定起始编号，常用于从 1 开始展示序号。"
+    tags: [遍历]
+    difficulty: 1
+
+  - qid: py-05-020
+    type: single
+    stem: "执行 `list(zip([1, 2, 3], ['x', 'y']))`，结果是？"
+    options:
+      - text: "[(1, 'x'), (2, 'y'), (3, None)]"
+      - text: "[(1, 'x'), (2, 'y')]（以最短的为准，3 被静默丢弃）"
+      - text: "[(1, 'x'), (2, 'y'), (3, '')]"
+      - text: "报错"
+    answer: [1]
+    explain: "zip 以最短的可迭代对象为准，超出的元素会被悄悄丢弃。长度不一致意味着数据可能错位，Python 3.10+ 可加 strict=True 让它报错。"
+    tags: [遍历, 易错]
+    difficulty: 2
+
+  - qid: py-05-021
+    type: single
+    stem: "执行 `a, b = 1, 2; a, b = b, a; print(a, b)`，输出是？"
+    options:
+      - text: "2 1（无需临时变量即可交换）"
+      - text: "1 2"
+      - text: "报错"
+      - text: "0 0"
+    answer: [0]
+    explain: "多变量赋值时右侧先被打包成元组再解包，所以一句就能交换两个变量，这是元组解包的经典用法。"
+    tags: [元组]
+    difficulty: 1
+
+  - qid: py-05-022
+    type: single
+    stem: "执行 `t = (1, [2, 3]); t[1].append(4); print(t)`，结果是？"
+    options:
+      - text: "报错：元组不可变，不能调用 append"
+      - text: "(1, [2, 3, 4])（元组的不可变是浅的，内部列表可被修改）"
+      - text: "(1, [2, 3])（不变）"
+      - text: "报错但没有修改成功"
+    answer: [1]
+    explain: "元组保证的是『各位置上的引用不变』，不保证引用指向的对象不变。所以内部列表可以增删改，但这也意味着含可变元素的元组不可哈希。"
+    tags: [元组, 易错]
+    difficulty: 3
+
+  - qid: py-05-023
+    type: single
+    stem: "执行 `hash((1, [2, 3]))`，会怎样？"
+    options:
+      - text: "正常返回一个整数"
+      - text: "抛出 TypeError: unhashable type: 'list'"
+      - text: "返回 0"
+      - text: "返回该列表的哈希值"
+    answer: [1]
+    explain: "元组的哈希由元素哈希递归组合而成，只要有一个元素不可哈希，整个元组就不可哈希，自然不能当字典的键。"
+    tags: [元组, 哈希]
+    difficulty: 3
+
+  - qid: py-05-024
+    type: single
+    stem: "关于列表的 `pop()`，正确的是？"
+    options:
+      - text: "pop() 返回被删除的元素；对空列表调用会抛 IndexError"
+      - text: "pop() 返回 None"
+      - text: "pop() 不能接收任何参数"
+      - text: "pop() 总是删除第一个元素"
+    answer: [0]
+    explain: "pop([i]) 删除并返回指定索引的元素，默认删最后一个；空列表调用抛 IndexError。它和返回 None 的 remove/del 不同，常用于实现栈。"
+    tags: [列表]
+    difficulty: 2
+
+  - qid: py-05-025
+    type: single
+    stem: "执行 `list(1, 2, 3)`，会怎样？"
+    options:
+      - text: "正常得到 [1, 2, 3]"
+      - text: "抛出 TypeError: list expected at most 1 argument"
+      - text: "得到 [(1, 2, 3)]"
+      - text: "得到 [1, 2, 3]，因为 list 接受多个参数"
+    answer: [1]
+    explain: "list() 只接受一个可迭代对象参数（如 list([1,2,3]) 或 list('abc')），不像 Java 的 List.of(1,2,3)。要创建含元素的列表请用字面量 [1, 2, 3]。"
+    tags: [列表, 易错]
+    difficulty: 2

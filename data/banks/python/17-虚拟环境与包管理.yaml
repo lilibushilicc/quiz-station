@@ -88,3 +88,154 @@ questions:
     explain: "虚拟环境里有绝对路径和平台相关的可执行文件，换机器就失效，而且体积大。正确做法是提交 requirements.txt 或 lock 文件。"
     tags: [venv, 反模式]
     difficulty: 2
+
+  - qid: py-17-008
+    type: single
+    stem: "系统装了多个 Python 版本时，推荐用什么方式调用 pip？"
+    options:
+      - text: "pip（裸命令）"
+      - text: "python -m pip"
+      - text: "pip3 only"
+      - text: "sudo pip"
+    answer: [1]
+    explain: "python -m pip 保证把包装进「当前这个 python」对应的环境，避免多版本下裸 pip 指向不明。Windows 上也可用 py -m pip。"
+    tags: [pip, 易错]
+    difficulty: 2
+
+  - qid: py-17-009
+    type: single
+    stem: "想安装「不低于 3.0 但低于 4.0」的 flask，正确的是？"
+    options:
+      - text: "pip install flask==3.0,<4.0"
+      - text: "pip install \"flask>=3.0,<4.0\""
+      - text: "pip install flask>=3.0<4.0"
+      - text: "pip install flask~3.0"
+    answer: [1]
+    explain: "版本区间建议加引号，避免 shell 把 < 当成重定向。== 精确锁定、>= 不低于、< 上限。flask~=3.0 是兼容发布（~=3.0 等价于 >=3.0,<3.1）。"
+    tags: [pip, 版本]
+    difficulty: 2
+
+  - qid: py-17-010
+    type: code
+    stem: "把当前已激活虚拟环境里装好的所有包（含精确版本）导出成清单文件。"
+    template: |
+      pip {{blank}} > requirements.txt
+    blanks: ["freeze"]
+    explain: "pip freeze 导出完整依赖树（含传递依赖）与精确版本。务必先激活环境再 freeze，否则导出全局包的无关项。复用时 pip install -r requirements.txt。"
+    tags: [pip, requirements]
+    difficulty: 1
+
+  - qid: py-17-011
+    type: multiple
+    stem: "关于 pip 的常用子命令，匹配正确的是？"
+    options:
+      - text: "pip show requests：查看已装包的版本、依赖与安装位置"
+      - text: "pip check：检查已装包之间的依赖冲突"
+      - text: "pip download pkg -d ./wheels：只下载不安装（离线部署用）"
+      - text: "pip list：列出所有已安装包"
+    answer: [0, 1, 2, 3]
+    explain: "这些都是 pip 的标准命令。pip list 列出已装包，pip show 看详情，pip check 查依赖冲突，pip download 离线下载。"
+    tags: [pip]
+    difficulty: 2
+
+  - qid: py-17-012
+    type: single
+    stem: "国内访问 PyPI 慢，想临时用一个镜像源安装，正确的是？"
+    options:
+      - text: "pip install pkg -i https://pypi.tuna.tsinghua.edu.cn/simple"
+      - text: "pip install pkg --pypi-speed"
+      - text: "pip mirror set tsinghua"
+      - text: "pip install pkg --china"
+    answer: [0]
+    explain: "用 -i/--index-url 指定镜像源地址；也可 pip config set global.index-url <url> 永久配置。注意只用可信镜像，避免包被投毒篡改。"
+    tags: [pip, 镜像]
+    difficulty: 2
+
+  - qid: py-17-013
+    type: single
+    stem: "退出当前虚拟环境（回到系统 Python）应该执行？"
+    options:
+      - text: "exit"
+      - text: "deactivate"
+      - text: "pip deactivate"
+      - text: "venv off"
+    answer: [1]
+    explain: "deactivate 只是停用环境、回到系统 Python，.venv 目录仍在，下次还能再 activate。删除则直接删目录（rm -rf .venv）。"
+    tags: [venv]
+    difficulty: 1
+
+  - qid: py-17-014
+    type: multiple
+    stem: "关于 `python -m venv` 的创建选项，正确的是？"
+    options:
+      - text: "--system-site-packages：允许环境访问全局包（会削弱隔离，一般不推荐）"
+      - text: "--prompt <text>：自定义激活后命令行提示符前缀"
+      - text: "--without-pip：创建时不装 pip（极少用）"
+      - text: "venv 需要先用 pip install virtualenv 才能用"
+    answer: [0, 1, 2]
+    explain: "venv 是标准库自带，无需 pip install virtualenv（那是第三方旧方案）。--system-site-packages 会访问全局包、削弱隔离；--without-pip 几乎不用。"
+    tags: [venv]
+    difficulty: 2
+
+  - qid: py-17-015
+    type: single
+    stem: "裸 `pip freeze` + `requirements.txt` 的主要痛点之一是？"
+    options:
+      - text: "它无法导出传递依赖，复现不完整"
+      - text: "它导出所有层依赖、不分直接/间接，且无真正的锁文件语义，易碎且平台相关"
+      - text: "它要求必须联网才能生成"
+      - text: "它只能用于 Windows"
+    answer: [1]
+    explain: "裸 requirements 把直接+间接依赖全写死、文件冗长易碎、不分直接/间接、无哈希锁文件语义。现代工具（pip-tools/poetry/uv）用 pyproject.toml 声明直接依赖 + .lock 固化完整解析。"
+    tags: [pip, 局限]
+    difficulty: 3
+
+  - qid: py-17-016
+    type: multiple
+    stem: "关于 pip-tools，正确的是？"
+    options:
+      - text: "用 .in 文件写直接依赖，pip-compile 编译出带锁的 requirements.txt"
+      - text: "pip-sync 严格按锁文件同步环境（会删除多余包）"
+      - text: "它给裸 pip 补上了「锁文件」能力，侵入性最小"
+      - text: "它取代了 venv，不再需要虚拟环境"
+    answer: [0, 1, 2]
+    explain: "pip-tools 是最小侵入方案：.in 写顶层依赖 → pip-compile 生成带精确版本的 requirements.txt（锁）→ pip-sync 严格同步。它仍工作在 venv 之上，不取代虚拟环境。"
+    tags: [工具链, pip-tools]
+    difficulty: 3
+
+  - qid: py-17-017
+    type: single
+    stem: "Poetry 的核心文件组合是？"
+    options:
+      - text: "setup.py + requirements.txt"
+      - text: "pyproject.toml + poetry.lock"
+      - text: "Pipfile + Pipfile.lock"
+      - text: "environment.yml"
+    answer: [1]
+    explain: "Poetry 用 pyproject.toml 声明依赖与项目元数据、poetry.lock 固化完整解析结果，一体化管理依赖/环境/打包发布，理念接近 Gradle。Pipfile 是 pipenv 的，environment.yml 是 conda 的。"
+    tags: [工具链, poetry]
+    difficulty: 2
+
+  - qid: py-17-018
+    type: code
+    stem: "用 uv 管理项目，创建环境并添加依赖的标准命令是？"
+    template: |
+      uv {{blank}} .venv        # 创建虚拟环境
+      uv {{blank}} requests     # 添加依赖（写进 pyproject.toml 并锁版本）
+    blanks: ["venv", "add"]
+    explain: "uv 一个工具取代 pip+venv+poetry：uv venv 建环境、uv add 加依赖（自动锁版本）、uv sync 按锁安装、uv run 运行命令，心智模型与 Maven/Gradle 一致。"
+    tags: [工具链, uv]
+    difficulty: 2
+
+  - qid: py-17-019
+    type: single
+    stem: "Conda 与一般 Python 包管理器（pip/uv/poetry）最关键的区别是？"
+    options:
+      - text: "它只能管理 Python 包"
+      - text: "它是跨语言的，能管理 Python 与非 Python 依赖（如 CUDA、R），常用于数据科学"
+      - text: "它比 pip 慢很多且已淘汰"
+      - text: "它不能创建独立环境"
+    answer: [1]
+    explain: "Conda 属另一条路线：跨语言环境管理器，可装 CUDA/R 等非 Python 依赖，常用于数据科学/机器学习。pip/uv/poetry 主要管 Python 包。"
+    tags: [工具链, conda]
+    difficulty: 2

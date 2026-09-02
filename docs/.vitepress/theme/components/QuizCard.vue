@@ -164,9 +164,21 @@ function optionState(i) {
         :disabled="submitted"
         @click="toggle(o.i)"
       >
-        <span class="q-letter">{{ letters[k] }}</span>
-        <span class="q-text" v-html="rich(o.text)"></span>
-      </button>
+          <span class="q-letter">{{ letters[k] }}</span>
+          <span class="q-text" v-html="rich(o.text)"></span>
+          <span
+            v-if="submitted && (optionState(o.i) === 'right' || optionState(o.i) === 'wrong')"
+            class="q-mark"
+            :class="optionState(o.i)"
+          >
+            <svg v-if="optionState(o.i) === 'right'" viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
+              <path d="M3 8.5l3.2 3.2L13 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <svg v-else viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
+              <path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </span>
+        </button>
     </div>
 
     <div v-else class="q-code">
@@ -319,8 +331,10 @@ function optionState(i) {
   transition: all 0.15s ease;
 }
 .q-option:hover:not(:disabled) {
-  border-color: var(--q-border-strong);
+  border-color: var(--q-accent);
   background: var(--q-surface-2);
+  box-shadow: inset 3px 0 0 var(--q-accent);
+  transform: translateX(2px);
 }
 .q-option:disabled {
   cursor: default;
@@ -352,6 +366,23 @@ function optionState(i) {
 .q-option.right .q-letter {
   border-color: transparent;
   color: var(--q-accent);
+}
+.q-mark {
+  margin-left: auto;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+.q-mark.right {
+  color: var(--q-ok);
+  background: var(--q-ok-soft);
+}
+.q-mark.wrong {
+  color: var(--q-bad);
+  background: var(--q-bad-soft);
 }
 
 .q-code pre {
@@ -428,18 +459,25 @@ function optionState(i) {
 
 .q-result {
   margin-top: 14px;
-  border-radius: 10px;
-  padding: 12px 14px;
+  border-radius: 12px;
+  padding: 13px 15px;
   font-size: 13.5px;
   line-height: 1.75;
+  border: 1px solid var(--q-border);
+  animation: q-fade-up 0.28s ease both;
 }
 .q-result.ok {
   background: var(--q-ok-soft);
   color: var(--q-ok);
+  border-color: var(--q-ok-soft);
 }
 .q-result.bad {
   background: var(--q-bad-soft);
   color: var(--q-bad);
+  border-color: var(--q-bad-soft);
+}
+.q-verdict strong {
+  font-weight: 600;
 }
 .q-verdict {
   display: flex;

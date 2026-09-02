@@ -110,3 +110,174 @@ questions:
     explain: "不写 newline='' 时，Windows 上每行之间会多出一个空行。读中文 CSV 时注意编码，Excel 导出的常是 GBK 或带 BOM 的 UTF-8。"
     tags: [CSV, 易错]
     difficulty: 3
+
+  - qid: py-14-009
+    type: single
+    stem: "用 open(path, 'x') 打开一个已存在的文件，会发生什么？"
+    options:
+      - text: 在原内容末尾追加
+      - text: 清空原内容，从头开始写
+      - text: 抛 FileExistsError（独占创建，文件已存在则失败）
+      - text: 以只读方式打开
+    answer: [2]
+    explain: "x 是排它（exclusive）创建模式：文件不存在才创建，已存在则抛 FileExistsError。它比 w 更安全，可用于防止误覆盖已有文件。"
+    tags: [文件, 易错]
+    difficulty: 2
+
+  - qid: py-14-010
+    type: single
+    stem: "在文本模式下调用 f.seek(5) 跳到文件中间（既不是 0 也不是末尾），会发生什么？"
+    options:
+      - text: 正常跳转到第 5 个字符位置
+      - text: "抛 io.UnsupportedOperation: can't do nonzero cur-relative seeks"
+      - text: 被无声忽略，指针不动
+      - text: 读出来的字符是乱码但能继续
+    answer: [1]
+    explain: "文本模式下字符数与字节数不一致（UTF-8 一个中文占 3 字节），任意偏移可能落在字符中间，因此只允许 seek(0)、seek(0,2) 跳末尾、seek(tell() 返回的值)。需要自由定位请用二进制模式 'rb'。"
+    tags: [文件, seek, 易错]
+    difficulty: 3
+
+  - qid: py-14-011
+    type: code
+    stem: "用二进制模式从文件末尾往前读最后 4 个字节。"
+    template: |
+      import os
+
+      with open("file.bin", "rb") as f:
+          f.seek(-4, {{blank}})
+          tail = f.read().decode()
+    blanks: ["os.SEEK_END"]
+    explain: "只有二进制模式才能做相对末尾的自由定位。os.SEEK_END（值为 2）表示从文件末尾开始算；文本模式会抛 UnsupportedOperation。"
+    tags: [文件, seek]
+    difficulty: 3
+
+  - qid: py-14-012
+    type: single
+    stem: "在 Windows 上直接写路径字符串 'D:\\temp\\new\\data.txt' 时，里面的 '\\t' 和 '\\n' 会被 Python 当成什么？推荐写法是什么？"
+    options:
+      - text: 被当作普通的反斜杠；无需特殊处理
+      - text: "被当作转义字符（\\t 变制表符、\\n 变换行），路径被改坏；推荐用原始字符串 r'...' 或正斜杠或 pathlib"
+      - text: 会直接报语法错误
+      - text: 等于 'D:/temp/new/data.txt'，没有任何区别
+    answer: [1]
+    explain: "普通字符串里 \\t、\\n 是转义字符。推荐：原始字符串 r'D:\\temp\\new\\data.txt'、对反斜杠转义、或用正斜杠（Windows 的 Python 也认）、或用 pathlib 拼接自动处理平台差异。"
+    tags: [路径, 易错]
+    difficulty: 2
+
+  - qid: py-14-013
+    type: single
+    stem: "读 Excel 导出的、开头带 BOM 的 UTF-8 文件时，用什么编码能自动去掉 BOM？"
+    options:
+      - text: "utf-8"
+      - text: "utf-8-sig"
+      - text: "gbk"
+      - text: "latin-1"
+    answer: [1]
+    explain: "utf-8-sig 在读时会自动剥离开头的 BOM（\\ufeff），写 CSV 给 Excel 打开时也用 utf-8-sig 加 BOM，让 Excel 正确识别中文不乱码。"
+    tags: [编码, CSV, 易错]
+    difficulty: 2
+
+  - qid: py-14-014
+    type: multiple
+    stem: "关于 write 与 writelines，正确的是？（多选）"
+    options:
+      - text: "write(字符串) 写入后不会自动加换行，需自己加 \\n"
+      - text: "writelines(序列) 会逐个写入元素，但同样不会在元素之间插入换行（如 ['a','b','c'] 得到 'abc'）"
+      - text: "print(内容, file=f) 会自动加换行"
+      - text: "writelines 会自动在每行末尾加上 \\n"
+    answer: [0, 1, 2]
+    explain: "writelines 名字很有误导性，本质是循环调用 write，不插入换行符。需要换行就自己加 \\n，或用 print(..., file=f)。"
+    tags: [文件, 易错]
+    difficulty: 2
+
+  - qid: py-14-015
+    type: single
+    stem: "用 csv 模块读取 CSV 后，row['amount'] 拿到的值是什么类型？空单元格呢？"
+    options:
+      - text: "原类型（如 299.0 是 float）；空单元格是 None"
+      - text: "都是 str；空单元格是空字符串 ''（除非指定 restval）"
+      - text: "都是 str；空单元格是 None"
+      - text: "模块会按内容自动推断类型"
+    answer: [1]
+    explain: "CSV 没有类型信息，所有字段读出来都是字符串。空单元格读成空字符串 ''，需要自己转换类型（如 float(row['amount'])）。"
+    tags: [CSV, 易错]
+    difficulty: 2
+
+  - qid: py-14-016
+    type: code
+    stem: "用 pathlib 取文件名（去掉最后一个扩展名）和最后的扩展名。"
+    template: |
+      from pathlib import Path
+
+      p = Path("/a/b/report.tar.gz")
+      name = p.{{blank}}      # report.tar
+      ext = p.{{blank}}       # .gz
+    blanks: ["stem", "suffix"]
+    explain: ".stem 去掉最后一个扩展名（report.tar），.suffix 取最后一个扩展名（.gz）；还有 .suffixes 取全部、.with_suffix 替换、.name 取完整文件名、.parent 取父目录。"
+    tags: [pathlib]
+    difficulty: 2
+
+  - qid: py-14-017
+    type: single
+    stem: "想在单元测试里测试一个接收文件对象的函数，又不想准备真实文件，最合适的是？"
+    options:
+      - text: "用 io.StringIO / io.BytesIO 在内存里模拟文件"
+      - text: "直接把字符串传给接收文件对象的函数"
+      - text: "必须用 tempfile 在磁盘上建临时文件"
+      - text: "用 os.pipe"
+    answer: [0]
+    explain: "StringIO/BytesIO 提供『内存中的文件』，支持全部文件 API（read/write/seek/迭代），测试时假装是文件，无需落盘。函数参数用文件对象而非路径，既好测试又易复用。"
+    tags: [io, 测试]
+    difficulty: 2
+
+  - qid: py-14-018
+    type: single
+    stem: "把 {'tags': ('a', 'b'), 1: 'k'} 用 JSON 往返序列化后，类型变化正确的是？"
+    options:
+      - text: "元组变成列表，整数键变成字符串"
+      - text: "元组保持为元组"
+      - text: "整数键保持为整数"
+      - text: "一切类型都保持不变"
+    answer: [0]
+    explain: "JSON 不保留 tuple（变 list），dict 的非字符串键会被转成字符串；set/datetime/Decimal 等类型直接报错。需要自定义序列化时给 json.dumps 传 default= 或 cls=JSONEncoder。"
+    tags: [JSON, 易错]
+    difficulty: 2
+
+  - qid: py-14-019
+    type: multiple
+    stem: "下列 IO 相关异常与触发场景，对应正确的是？（多选）"
+    options:
+      - text: "FileNotFoundError：r 模式打开不存在的文件"
+      - text: "FileExistsError：x 模式打开已存在的文件"
+      - text: "PermissionError：权限不足，或在 Windows 上打开被占用的文件"
+      - text: "UnicodeDecodeError：编码不匹配"
+    answer: [0, 1, 2, 3]
+    explain: "这些异常都是 OSError 的子类（OSError 是它们的父类，磁盘满、路径过长也归它）。处理时推荐 EAFP 风格直接 try/except，不要先用 os.path.exists 做前置检查（存在 TOCTOU 竞态）。"
+    tags: [异常, 文件]
+    difficulty: 2
+
+  - qid: py-14-020
+    type: single
+    stem: "关于文件缓冲与 flush，说法正确的是？"
+    options:
+      - text: "buffering=0（无缓冲）只能用于二进制模式"
+      - text: "flush() 会立即把数据真正写入磁盘，断电也不丢"
+      - text: "buffering=1 表示块缓冲"
+      - text: "写文本文件默认是无缓冲"
+    answer: [0]
+    explain: "buffering=0 仅二进制可用；文本模式默认是行/块缓冲（-1）。flush() 只是把 Python 缓冲交给操作系统，真正落盘要用 os.fsync(f.fileno())。实时日志可用 buffering=1 行缓冲让每行立即刷出。"
+    tags: [文件, 易错]
+    difficulty: 3
+
+  - qid: py-14-021
+    type: single
+    stem: "脚本里用相对路径 'config/app.yaml'，它是相对于什么来解析的？"
+    options:
+      - text: "脚本文件所在的目录"
+      - text: "进程的当前工作目录（cwd）"
+      - text: "系统根目录"
+      - text: "Python 解释器的安装目录"
+    answer: [1]
+    explain: "相对路径是相对于进程的当前工作目录（cwd），与脚本位置无关——在哪儿运行结果可能不同。需要『相对脚本』时，用 Path(__file__).resolve().parent 作为基准目录。"
+    tags: [路径, 易错]
+    difficulty: 2

@@ -1,8 +1,8 @@
 :root {
-  --vp-c-brand-1: #4f5bd5;
-  --vp-c-brand-2: #6b76e8;
-  --vp-c-brand-3: #8b94f2;
-  --vp-c-brand-soft: rgba(79, 91, 213, 0.12);
+  --vp-c-brand-1: #5b6cff;
+  --vp-c-brand-2: #7c86ff;
+  --vp-c-brand-3: #9aa2ff;
+  --vp-c-brand-soft: rgba(91, 108, 255, 0.12);
 
   --vp-font-family-base: 'Inter var', 'Inter', system-ui, -apple-system, 'PingFang SC',
     'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
@@ -12,61 +12,123 @@
   --vp-sidebar-width: 274px;
 
   --q-surface: #ffffff;
-  --q-surface-2: #f7f7fb;
-  --q-border: rgba(20, 20, 43, 0.09);
-  --q-border-strong: rgba(20, 20, 43, 0.18);
-  --q-text: #1b1c26;
-  --q-text-soft: #5b5d70;
-  --q-text-faint: #8d8fa3;
-  --q-ok: #1d9e75;
-  --q-ok-soft: rgba(29, 158, 117, 0.12);
-  --q-bad: #d1495b;
-  --q-bad-soft: rgba(209, 73, 91, 0.1);
-  --q-accent: #4f5bd5;
-  --q-accent-soft: rgba(79, 91, 213, 0.1);
-  --q-shadow: 0 1px 2px rgba(16, 17, 40, 0.04), 0 8px 24px rgba(16, 17, 40, 0.04);
-  --q-radius: 14px;
+  --q-surface-2: #f6f7fb;
+  --q-surface-3: #eef0f7;
+  --q-border: rgba(22, 24, 51, 0.08);
+  --q-border-strong: rgba(22, 24, 51, 0.16);
+  --q-text: #15161f;
+  --q-text-soft: #565a72;
+  --q-text-faint: #8b8ea6;
+  --q-ok: #15a673;
+  --q-ok-soft: rgba(21, 166, 115, 0.1);
+  --q-bad: #e5484d;
+  --q-bad-soft: rgba(229, 72, 77, 0.1);
+  --q-accent: #5b6cff;
+  --q-accent-2: #8b5cf6;
+  --q-accent-soft: rgba(91, 108, 255, 0.1);
+  --q-accent-grad: linear-gradient(135deg, #5b6cff 0%, #8b5cf6 100%);
+  --q-shadow-sm: 0 1px 2px rgba(16, 17, 40, 0.05);
+  --q-shadow: 0 2px 6px rgba(16, 17, 40, 0.04), 0 14px 36px rgba(16, 17, 40, 0.07);
+  --q-shadow-accent: 0 10px 30px rgba(91, 108, 255, 0.22);
+  --q-radius: 16px;
+  --q-radius-sm: 10px;
 }
 
 .dark {
   --vp-c-brand-1: #8b94f2;
-  --vp-c-brand-2: #6b76e8;
-  --vp-c-brand-3: #4f5bd5;
+  --vp-c-brand-2: #7c86ff;
+  --vp-c-brand-3: #5b6cff;
   --vp-c-brand-soft: rgba(139, 148, 242, 0.16);
 
-  --q-surface: #171822;
-  --q-surface-2: #1d1f2b;
-  --q-border: rgba(255, 255, 255, 0.1);
-  --q-border-strong: rgba(255, 255, 255, 0.2);
-  --q-text: #e7e8f0;
-  --q-text-soft: #a2a4b8;
+  --q-surface: #16171f;
+  --q-surface-2: #1c1e29;
+  --q-surface-3: #232633;
+  --q-border: rgba(255, 255, 255, 0.09);
+  --q-border-strong: rgba(255, 255, 255, 0.18);
+  --q-text: #e9eaf2;
+  --q-text-soft: #a6a8bd;
   --q-text-faint: #75778d;
   --q-ok: #4ecfa3;
   --q-bad: #f2778a;
   --q-accent: #8b94f2;
-  --q-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.22);
+  --q-accent-2: #a78bfa;
+  --q-accent-soft: rgba(139, 148, 242, 0.14);
+  --q-accent-grad: linear-gradient(135deg, #8b94f2 0%, #a78bfa 100%);
+  --q-shadow: 0 2px 6px rgba(0, 0, 0, 0.3), 0 14px 36px rgba(0, 0, 0, 0.28);
+  --q-shadow-accent: 0 10px 30px rgba(139, 148, 242, 0.28);
+}
+
+::selection {
+  background: var(--q-accent-soft);
+  color: var(--q-accent);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--q-border-strong) transparent;
+}
+*::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--q-border-strong);
+  border-radius: 99px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--q-text-faint);
+  background-clip: content-box;
+}
+
+:focus-visible {
+  outline: 2px solid var(--q-accent);
+  outline-offset: 2px;
+  border-radius: 6px;
 }
 
 .vp-doc h1 {
-  font-size: 26px;
-  font-weight: 500;
+  font-size: 27px;
+  font-weight: 600;
   letter-spacing: -0.01em;
 }
 
 .VPSidebar {
   border-right: 1px solid var(--q-border);
 }
-
 .VPSidebarItem.level-0 > .item > .text {
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .vp-doc a {
   text-decoration: none;
 }
 
+@keyframes q-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes q-pop {
+  0% {
+    transform: scale(0.94);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 @media (max-width: 640px) {
   :root {
-    --q-radius: 12px;
+    --q-radius: 13px;
+    --q-radius-sm: 9px;
   }
 }

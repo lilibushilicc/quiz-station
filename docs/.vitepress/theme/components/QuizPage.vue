@@ -142,16 +142,17 @@ function resetAll() {
   color: var(--q-bad);
 }
 .qp-bar {
-  height: 3px;
-  border-radius: 2px;
-  background: var(--q-border);
+  height: 4px;
+  border-radius: 99px;
+  background: var(--q-surface-3);
   overflow: hidden;
 }
 .qp-bar i {
   display: block;
   height: 100%;
-  background: var(--q-ok);
-  transition: width 0.4s ease;
+  background: linear-gradient(90deg, var(--q-accent), var(--q-ok));
+  border-radius: 99px;
+  transition: width 0.45s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .qp-tools {
@@ -167,8 +168,11 @@ function resetAll() {
   padding: 3px;
   gap: 2px;
   border: 1px solid var(--q-border);
-  border-radius: 9px;
-  background: var(--q-surface);
+  border-radius: 10px;
+  background: var(--q-surface-2);
+}
+.qp-seg button.on {
+  box-shadow: var(--q-shadow-sm);
 }
 .qp-seg button {
   border: none;

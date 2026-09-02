@@ -130,3 +130,219 @@ questions:
     explain: "函数调用有额外开销，递归通常比循环慢，还可能受递归深度限制。用 sys.setrecursionlimit 调高上限有栈溢出风险，一般建议改成迭代。"
     tags: [递归]
     difficulty: 2
+
+  - qid: py-07-011
+    type: single
+    stem: "在定义函数时，带默认值的参数必须排在不带默认值的参数之后，否则会怎样？"
+    options:
+      - text: "自动给前面的参数也补上默认值"
+      - text: "报 SyntaxError: non-default argument follows default argument"
+      - text: "正常运行，只是默认值被忽略"
+      - text: "报 TypeError"
+    answer: [1]
+    explain: "位置参数里，有默认值的必须放在无默认值的后面（例如 `def f(b, a=1)`），否则解释器直接报 SyntaxError。"
+    tags: [参数, 易错]
+    difficulty: 2
+
+  - qid: py-07-012
+    type: single
+    stem: "调用 `create_user(name='张三', 28, '北京')`（混用关键字与位置参数）会怎样？"
+    options:
+      - text: "正常运行，按位置补齐剩余参数"
+      - text: "报 SyntaxError：关键字参数后面不能再跟位置参数"
+      - text: "等价于 create_user('张三', 28, '北京')"
+      - text: "报 TypeError"
+    answer: [1]
+    explain: "混用时关键字参数必须写在位置参数之后。`f(a=1, 2)` 这种写法在语法上就不合法。"
+    tags: [参数, 易错]
+    difficulty: 2
+
+  - qid: py-07-013
+    type: code
+    stem: "补全：用 *args 让函数接受任意多个位置参数并返回它们的和（函数体内用 numbers 这个名字）。"
+    template: |
+      def sum_all({{blank}}):
+          return sum(numbers)
+    blanks: ["*numbers"]
+    explain: "*args 把多余的位置实参收集成一个元组，所以函数体内拿到的是元组 numbers。调用时 f(1,2,3) 即可。"
+    tags: [参数]
+    difficulty: 2
+
+  - qid: py-07-014
+    type: single
+    stem: "定义 `def f(a, b, c): ...` 且 `args = [1, 2, 3]`，调用 `f(*args)` 的效果等价于？"
+    options:
+      - text: "把列表 [1,2,3] 作为一个整体传给 f"
+      - text: "把列表拆开成位置参数，等价于 f(1, 2, 3)"
+      - text: "把列表作为关键字参数传入"
+      - text: "报错，* 只能用于定义不能用于调用"
+    answer: [1]
+    explain: "定义函数时的 * 是『收集』，调用时的 * 是『展开（拆包）』，方向相反。两者还能一起用：f(*lst, **dic)。"
+    tags: [参数]
+    difficulty: 2
+
+  - qid: py-07-015
+    type: single
+    stem: "调用 `f(**{'nickname': '张三'})` 来调用 `def f(name): ...`，结果怎样？"
+    options:
+      - text: "正常，nickname 自动对应到 name 参数"
+      - text: "报 TypeError: f() got an unexpected keyword argument 'nickname'"
+      - text: "报 TypeError: keywords must be strings"
+      - text: "静默忽略 nickname，name 用默认值"
+    answer: [1]
+    explain: "** 解包要求字典的键必须是字符串且严格匹配参数名。键不匹配参数名会报 unexpected keyword argument；键不是字符串才报 keywords must be strings。"
+    tags: [参数, 易错]
+    difficulty: 3
+
+  - qid: py-07-016
+    type: single
+    stem: "对于 `def divide(a, b, /): return a / b`，下列哪种调用能通过？"
+    options:
+      - text: "divide(a=10, b=2)"
+      - text: "divide(10, b=2)"
+      - text: "divide(10, 2)"
+      - text: "divide(a=10, 2)"
+    answer: [2]
+    explain: "/ 之前的参数只能按位置传，不能写参数名。只有 divide(10, 2) 合法，其余都用了关键字名会报 TypeError。"
+    tags: [参数, 易错]
+    difficulty: 3
+
+  - qid: py-07-017
+    type: single
+    stem: "执行 `funcs = []; for i in range(3): funcs.append(lambda: i)`，随后 `[f() for f in funcs]` 的结果是？"
+    options:
+      - text: "[0, 1, 2]"
+      - text: "[2, 2, 2]"
+      - text: "[<lambda>, <lambda>, <lambda>]"
+      - text: "报错 TypeError"
+    answer: [1]
+    explain: "lambda 捕获的是变量 i 本身而非当时的取值。循环结束后 i 等于 2，三个 lambda 都读到 2。用 lambda i=i: i 在定义时冻结当前值即可修正。"
+    tags: [lambda, 易错]
+    difficulty: 3
+
+  - qid: py-07-018
+    type: code
+    stem: "补全：在循环中创建 lambda，用默认参数把当前的 i 冻结住，使每个函数记住各自的 i。"
+    template: |
+      funcs.append(lambda {{blank}}: i)
+    blanks: ["i=i"]
+    explain: "默认参数在定义那一刻求值并锁定，因此每个 lambda 捕获到的是各自循环轮次的 i 值，而不是共享的变量。"
+    tags: [lambda, 易错]
+    difficulty: 3
+
+  - qid: py-07-019
+    type: single
+    stem: "要在函数内修改模块级的全局变量 `counter`，正确做法是？"
+    options:
+      - text: "直接写 counter += 1，无需任何声明"
+      - text: "用 `global counter` 声明后，再修改"
+      - text: "用 `nonlocal counter` 声明后修改"
+      - text: "Python 无法修改全局变量"
+    answer: [1]
+    explain: "函数内只要对名字赋值，该名字就被当作局部变量。要改全局必须先 global 声明。nonlocal 只针对外层函数（非全局）作用域。"
+    tags: [作用域, 易错]
+    difficulty: 2
+
+  - qid: py-07-020
+    type: single
+    stem: "执行 `counter = 0`，再定义 `def f(): counter = counter + 1` 并调用 `f()`，会怎样？"
+    options:
+      - text: "输出 1"
+      - text: "报 UnboundLocalError"
+      - text: "报 NameError"
+      - text: "输出 0"
+    answer: [1]
+    explain: "编译函数时发现 counter 在函数体内被赋值，于是整函数内它都是局部变量。等号右侧读取它时尚未绑定，于是报 UnboundLocalError。只读不写则没问题。"
+    tags: [作用域, 易错]
+    difficulty: 3
+
+  - qid: py-07-021
+    type: single
+    stem: "先执行 `list = [1, 2, 3]`，之后再调用 `list('abc')`，会怎样？"
+    options:
+      - text: "返回 ['a', 'b', 'c']"
+      - text: "报 TypeError: 'list' object is not callable"
+      - text: "正常，list 仍是内置函数"
+      - text: "报 NameError"
+    answer: [1]
+    explain: "用 list、dict、str、type 等内置名做变量名会覆盖内置对象，之后当函数调用就报 TypeError。习惯上用 list_、type_ 等加下划线避免。"
+    tags: [作用域, 易错]
+    difficulty: 2
+
+  - qid: py-07-022
+    type: single
+    stem: "函数 `def add(a: int, b: int) -> int: return a + b`，调用 `add('你', '好')` 会怎样？"
+    options:
+      - text: "报 TypeError，因为注解要求 int"
+      - text: "正常运行并返回 '你好'"
+      - text: "报 ValueError"
+      - text: "编译期直接拒绝"
+    answer: [1]
+    explain: "类型注解只是元数据，运行时 Python 解释器完全不校验类型。注解的价值在于 IDE 提示和 mypy/pyright 等静态检查工具。"
+    tags: [注解, 易错]
+    difficulty: 2
+
+  - qid: py-07-023
+    type: single
+    stem: "先后定义 `def greet(name): ...` 和 `def greet(name, greeting): ...`，再调用 `greet('张三')` 会怎样？"
+    options:
+      - text: "自动匹配第一个签名并返回"
+      - text: "报 TypeError: greet() missing 1 required positional argument"
+      - text: "两个函数共存，都能用"
+      - text: "正常返回，后定义覆盖前定义但旧签名仍可用"
+    answer: [1]
+    explain: "Python 没有方法重载，同名函数后定义的覆盖前面的。greet('张三') 实际调用的是两参数的版本，少传一个参数就 TypeError。"
+    tags: [函数, 易错]
+    difficulty: 2
+
+  - qid: py-07-024
+    type: single
+    stem: "`squared = map(lambda x: x ** 2, [1, 2, 3]); print(squared)` 会输出什么？"
+    options:
+      - text: "[1, 4, 9]"
+      - text: "<map object at 0x...> 这样的迭代器，尚未计算"
+      - text: "(1, 4, 9)"
+      - text: "报错"
+    answer: [1]
+    explain: "map 和 filter 返回惰性迭代器，只有用 list() 展开时才真正计算。这也是它们常和 list() 一起用的原因。"
+    tags: [函数式]
+    difficulty: 2
+
+  - qid: py-07-025
+    type: single
+    stem: "在 Python 3 中直接使用 `reduce(lambda a, b: a + b, [1, 2, 3])`（未导入），会怎样？"
+    options:
+      - text: "返回 6"
+      - text: "报 NameError: name 'reduce' is not defined"
+      - text: "报 TypeError"
+      - text: "返回 [1, 2, 3]"
+    answer: [1]
+    explain: "reduce 在 Python 3 被移到了 functools，必须 `from functools import reduce`。简单求和直接用 sum() 即可，无需 reduce。"
+    tags: [函数式, 易错]
+    difficulty: 2
+
+  - qid: py-07-026
+    type: single
+    stem: "`list(filter(None, [1, 0, 'hello', '', None, [1], []]))` 的结果是？"
+    options:
+      - text: "[1, 0, 'hello', '', None, [1], []]"
+      - text: "[1, 'hello', [1]]"
+      - text: "[0, '', None, []]"
+      - text: "[]"
+    answer: [1]
+    explain: "filter(None, ...) 等价于保留所有真值，过滤掉 0、空字符串、None、空列表等假值。需要 list() 才能看到结果。"
+    tags: [函数式]
+    difficulty: 2
+
+  - qid: py-07-027
+    type: single
+    stem: "`double = make_multiplier(2)` 之后（make_multiplier 返回捕获了 factor 的函数），`double.__closure__[0].cell_contents` 等于？"
+    options:
+      - text: "0"
+      - text: "2"
+      - text: "None"
+      - text: "报错，函数没有 __closure__ 属性"
+    answer: [1]
+    explain: "闭包 = 函数 + 它捕获的外层变量环境。即使 make_multiplier 已返回，内部函数仍持有对 factor 的引用，可通过 __closure__ 查看。"
+    tags: [闭包]
+    difficulty: 3

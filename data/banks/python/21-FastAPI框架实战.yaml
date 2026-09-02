@@ -117,3 +117,232 @@ questions:
     explain: "main 是模块名，app 是 FastAPI 实例名。生产环境用 uvicorn 多 worker 或 gunicorn + uvicorn.workers.UvicornWorker，前面再挂 Nginx。"
     tags: [部署]
     difficulty: 2
+
+  - qid: py-21-009
+    type: code
+    stem: "给分页查询参数加约束：页码默认 1 且必须大于等于 1，每页大小默认 10 且范围 1~100。"
+    template: |
+      from fastapi import Query
+
+      @app.get("/articles")
+      def list_articles(
+          page: int = Query({{blank}}, ge=1),
+          size: int = Query(10, ge=1, {{blank}}=100),
+      ):
+          ...
+    blanks: [1, le]
+    explain: "数值用 ge/le/gt/lt 做约束，字符串用 min_length/max_length/regex。约束会写进 OpenAPI 文档。Query 第一个位置参数是默认值。"
+    tags: [参数, Query]
+    difficulty: 2
+
+  - qid: py-21-010
+    type: single
+    stem: "在 FastAPI 里，一个查询参数“是否必填”由什么决定？"
+    options:
+      - text: "只要标注了类型注解就自动变成可选"
+      - text: "看有没有默认值：没有默认值=必填，有默认值（含 None）=可选"
+      - text: "必须用 Query(...) 才必填"
+      - text: "所有查询参数都必填"
+    answer: [1]
+    explain: "规则与函数默认参数一致：无默认值即必填，不传返回 422；给 = None 或 = 1 即变可选。新手常误以为“标注类型就自动可选”。"
+    tags: [参数, 易错]
+    difficulty: 2
+
+  - qid: py-21-011
+    type: single
+    stem: "Pydantic v2 中，把一个模型对象转换成 dict，正确的方法是？"
+    options:
+      - text: "data.dict()"
+      - text: "data.model_dump()"
+      - text: "dict(data)"
+      - text: "data.to_dict()"
+    answer: [1]
+    explain: "Pydantic v2 用 model_dump() 和 model_dump_json()；v1 的 .dict() / .json() 已废弃。模型还提供类方法 model_validate(字典) 做反向解析。"
+    tags: [Pydantic, 易错]
+    difficulty: 2
+
+  - qid: py-21-012
+    type: multiple
+    stem: "关于 Pydantic v2 的字段校验器，正确的是？"
+    options:
+      - text: "用 @field_validator（注意是复数形式）声明"
+      - text: "校验方法需要标 @classmethod"
+      - text: "v1 的 @validator 已废弃"
+      - text: "field_validator 必须在模型外单独定义"
+    answer: [0, 1, 2]
+    explain: "v2 用 @field_validator('字段') 且方法标 @classmethod，可通过 info.data 取同一对象的其他字段做跨字段校验（如两次密码一致）。@validator 是 v1 写法。"
+    tags: [Pydantic]
+    difficulty: 3
+
+  - qid: py-21-013
+    type: multiple
+    stem: "FastAPI 启动后，默认可访问的文档/规范端点是？"
+    options:
+      - text: "http://127.0.0.1:8000/docs（Swagger UI）"
+      - text: "http://127.0.0.1:8000/redoc（ReDoc）"
+      - text: "http://127.0.0.1:8000/openapi.json（OpenAPI schema）"
+      - text: "需要额外安装插件才能有文档"
+    answer: [0, 1, 2]
+    explain: "FastAPI 零配置自动生成：/docs 是 Swagger UI（可在线调接口），/redoc 是 ReDoc，/openapi.json 是规范。Spring Boot 需引 springdoc-openapi 才有同等效果。"
+    tags: [文档]
+    difficulty: 2
+
+  - qid: py-21-014
+    type: single
+    stem: "开启 CORS 且 allow_credentials=True 时，关于 allow_origins 的正确做法是？"
+    options:
+      - text: "写成 allow_origins=['*'] 最方便"
+      - text: "不能写 ['*']，必须列出具体域名，否则浏览器会拒绝带凭证的请求"
+      - text: "allow_credentials 不影响 allow_origins"
+      - text: "allow_origins 只能写一个域名"
+    answer: [1]
+    explain: "CORS 规范要求：带凭证（cookie/Authorization）时，Access-Control-Allow-Origin 不能是通配 *，必须明确列出来源，如 ['http://localhost:5173']。"
+    tags: [CORS, 易错]
+    difficulty: 3
+
+  - qid: py-21-015
+    type: code
+    stem: "写一个 HTTP 中间件，记录请求处理耗时并加到响应头。"
+    template: |
+      @app.middleware("http")
+      async def add_time(request: Request, {{blank}}):
+          start = time.perf_counter()
+          response = await {{blank}}(request)
+          response.headers["X-Process-Time"] = str(time.perf_counter() - start)
+          return response
+    blanks: [call_next, call_next]
+    explain: "中间件签名为 (request, call_next)，call_next 把请求交给后续处理（最终路由），返回值即响应。处理前后都能插手，常用于日志、计时、跨域。"
+    tags: [中间件]
+    difficulty: 3
+
+  - qid: py-21-016
+    type: single
+    stem: "在 FastAPI 里，参数校验失败（如类型不对）和主动 raise HTTPException 分别返回什么状态码？"
+    options:
+      - text: "校验失败 400，HTTPException 也 400"
+      - text: "校验失败自动返回 422 Unprocessable Entity，主动 raise HTTPException(status_code=403) 则返回对应码"
+      - text: "两者都返回 500"
+      - text: "校验失败返回 200 但带错误信息"
+    answer: [1]
+    explain: "Pydantic 校验失败→422 并附带字段级错误（RequestValidationError）；业务里 raise HTTPException(status_code=..., detail=...) 返回你指定的码。可自定义 exception_handler 统一错误结构。"
+    tags: [异常]
+    difficulty: 2
+
+  - qid: py-21-017
+    type: single
+    stem: "当接口变多，用 APIRouter 拆分模块后，如何把它们挂到主 app 上？"
+    options:
+      - text: "每个子路由文件直接 import 到 main 并 @app.get 重写一遍"
+      - text: "在子模块用 APIRouter(prefix='/users', tags=['users']) 定义，再 app.include_router(users.router)"
+      - text: "FastAPI 不支持拆分路由"
+      - text: "必须在配置文件里注册"
+    answer: [1]
+    explain: "APIRouter 让你像写 @app.get 一样写 @router.get，prefix 加统一前缀，tags 让 Swagger 按分组展示，最后在 main.py 用 include_router 汇总。"
+    tags: [路由, 结构]
+    difficulty: 2
+
+  - qid: py-21-018
+    type: single
+    stem: "用 TestClient 做接口测试时，如何替换掉真实的数据库依赖？"
+    options:
+      - text: "无法替换，必须连真实库"
+      - text: "用 app.dependency_overrides[get_db] = fake_get_db 注入假依赖，测完记得 clear()"
+      - text: "必须改源码把 Depends 去掉"
+      - text: "用 mock.patch 全局打桩路由"
+    answer: [1]
+    explain: "dependency_overrides 是官方推荐的测试替身方式，把真实依赖替换成内存版或假实现，隔离外部依赖；用完后 clear() 恢复，避免影响其它测试。"
+    tags: [测试]
+    difficulty: 3
+
+  - qid: py-21-019
+    type: code
+    stem: "创建资源的 POST 接口，声明返回 201 状态码。"
+    template: |
+      from fastapi import status
+
+      @app.post("/users", status_code=status.{{blank}}_CREATED)
+      def create_user():
+          ...
+    blanks: [HTTP_201]
+    explain: "用 status.HTTP_201_CREATED 等价于写 201，可读性更好，对标 Spring 的 HttpStatus.CREATED。还有 HTTP_204_NO_CONTENT 等常用常量。"
+    tags: [响应]
+    difficulty: 1
+
+  - qid: py-21-020
+    type: single
+    stem: "FastAPI 官方推荐的异步数据库做法是？"
+    options:
+      - text: "只能用同步 SQLAlchemy，不能用异步"
+      - text: "用 create_async_engine + async_sessionmaker + AsyncSession，并配异步驱动（如 asyncpg/aiosqlite）"
+      - text: "直接 import sqlite3 即可"
+      - text: "异步 ORM 不需要 await"
+    answer: [1]
+    explain: "异步 SQLAlchemy 用 create_async_engine('postgresql+asyncpg://...') 和 async_sessionmaker，会话是 AsyncSession，用 await db.execute(select(...))。注意驱动也要是异步的。"
+    tags: [数据库, 异步]
+    difficulty: 3
+
+  - qid: py-21-021
+    type: single
+    stem: "关于 FastAPI 的 OAuth2 密码流鉴权，正确的是？"
+    options:
+      - text: "OAuth2PasswordBearer(tokenUrl='login') 只是装饰，不参与校验"
+      - text: "它声明取令牌的地址，配合 Depends 注入 token，再用 jwt.decode 校验；Swagger 的 Authorize 按钮会用到 tokenUrl"
+      - text: "token 必须放在查询参数里"
+      - text: "必须自己实现整套 OAuth2 协议"
+    answer: [1]
+    explain: "OAuth2PasswordBearer 声明 token 获取地址，get_current_user 用 Depends(oauth2_scheme) 拿到 Bearer token 再 jwt.decode 校验。OAuth2PasswordRequestForm 接收的是表单而非 JSON。"
+    tags: [认证]
+    difficulty: 3
+
+  - qid: py-21-022
+    type: single
+    stem: "response_model=list[Out] 配合 response_model_exclude_none=True 的作用是？"
+    options:
+      - text: "把响应里的 None 字段替换成空字符串"
+      - text: "从响应中剔除值为 None 的字段，减少冗余 JSON"
+      - text: "强制所有字段都不能为 None"
+      - text: "只排除第一个 None 字段"
+    answer: [1]
+    explain: "response_model_exclude_none 会把序列化结果中值为 None 的键去掉，使返回更干净。它和 response_model 一起用于对外契约的字段过滤。"
+    tags: [响应]
+    difficulty: 2
+
+  - qid: py-21-023
+    type: single
+    stem: "在 async def 路由里直接调用 `time.sleep(1)` 或 `requests.get()`，会怎样？"
+    options:
+      - text: "完全没问题，事件循环会自动处理"
+      - text: "会阻塞整个事件循环，让所有并发请求一起卡住"
+      - text: "只影响当前这一个请求"
+      - text: "框架会自动把它丢进线程池"
+    answer: [1]
+    explain: "async def 跑在单线程事件循环里，同步阻塞调用不会让出控制权，会卡死整个循环。要么改成 def（FastAPI 用线程池跑），要么用 await run_in_threadpool，要么换原生异步库（httpx.AsyncClient、asyncpg）。"
+    tags: [异步, 易错, 高频]
+    difficulty: 3
+
+  - qid: py-21-024
+    type: single
+    stem: "开发模式用 `fastapi dev main.py`，生产模式正确的是？"
+    options:
+      - text: "生产也用 fastapi dev，只是加 --workers"
+      - text: "生产用 `fastapi run main.py` 或 `uvicorn main:app --workers 4`，不要用 --reload"
+      - text: "生产必须把代码改成异步"
+      - text: "生产用 `python main.py` 直接跑"
+    answer: [1]
+    explain: "fastapi dev 带热重载、单 worker，仅限开发。生产用 fastapi run（关闭 reload）或更常见的 uvicorn main:app --workers 4 起多进程绕开 GIL。--reload 绝不能上生产。"
+    tags: [部署, 易错]
+    difficulty: 2
+
+  - qid: py-21-025
+    type: code
+    stem: "给路径参数 user_id 加约束：必须大于 0。"
+    template: |
+      from fastapi import Path
+
+      @app.get("/users/{user_id}")
+      def get_user(user_id: int = Path({{blank}}=0, description="用户 ID")):
+          ...
+    blanks: [gt]
+    explain: "路径参数用 Path 加约束：gt 严格大于、ge 大于等于，字符串还有 min_length 等。Query 对应查询参数，Path 对应路径参数。"
+    tags: [参数, Path]
+    difficulty: 2

@@ -108,3 +108,185 @@ questions:
     explain: "绝大多数需求用装饰器、__init_subclass__ 或描述符就够了。type(name, bases, namespace) 可以动态创建类，这才是常见用法。"
     tags: [元类]
     difficulty: 3
+
+  - qid: py-11-009
+    type: single
+    stem: "关于描述符的优先级，正确的是？"
+    options:
+      - text: "非数据描述符（只有 __get__）优先级高于实例字典"
+      - text: "数据描述符（实现了 __set__/__delete__）优先级高于实例字典"
+      - text: "实例字典永远最高"
+      - text: "类属性永远最高"
+    answer: [1]
+    explain: "完整顺序：数据描述符 > 实例 __dict__ > 非数据描述符/类属性 > __getattr__。property 是数据描述符，所以 setter 校验才能生效。"
+    tags: [描述符, 易错]
+    difficulty: 3
+
+  - qid: py-11-010
+    type: single
+    stem: "在 `__getattribute__` 里写 `return self.x` 会发生什么？"
+    options:
+      - text: "正常返回属性值"
+      - text: "RecursionError（无限递归）"
+      - text: "返回 None"
+      - text: "AttributeError"
+    answer: [1]
+    explain: "self.x 又会触发 __getattribute__，必须改用 `super().__getattribute__(name)` 或 `object.__getattribute__`。优先用 __getattr__ 更安全。"
+    tags: [魔法方法, 易错]
+    difficulty: 3
+
+  - qid: py-11-011
+    type: single
+    stem: "`__getattr__` 在什么时机被调用？"
+    options:
+      - text: "每次访问任何属性时"
+      - text: "只在常规属性查找全部失败后（找不到属性时）"
+      - text: "给属性赋值时"
+      - text: "删除属性时"
+    answer: [1]
+    explain: "四条魔法方法分工：__getattribute__（每次访问）、__getattr__（兜底/找不到）、__setattr__（赋值）、__delattr__（删除）。"
+    tags: [魔法方法]
+    difficulty: 2
+
+  - qid: py-11-012
+    type: single
+    stem: "类实现了 `__call__` 后，下列说法正确的是？"
+    options:
+      - text: "实例不能再被实例化"
+      - text: "实例可以像函数一样被调用，且 callable(实例) 返回 True"
+      - text: "类本身变成函数"
+      - text: "必须配合 @staticmethod"
+    answer: [1]
+    explain: "实现 __call__ 让实例可调用（带状态的函数），callable() 返回 True。类装饰器的实现基础就依赖它。"
+    tags: [魔法方法]
+    difficulty: 2
+
+  - qid: py-11-013
+    type: single
+    stem: "`a = Money(5)` 时，`3 + a` 之所以能工作，是因为 Money 实现了？"
+    options:
+      - text: "__add__"
+      - text: "__radd__"
+      - text: "__iadd__"
+      - text: "__mul__"
+    answer: [1]
+    explain: "Python 先问 int.__add__(3, a)，int 不认识 Money 返回 NotImplemented，于是转调 Money.__radd__(a, 3)。没有它就会 TypeError。"
+    tags: [魔法方法, 易错]
+    difficulty: 3
+
+  - qid: py-11-014
+    type: single
+    stem: "在 `__eq__` 里遇到类型不匹配的对象时，应该返回？"
+    options:
+      - text: "False"
+      - text: "NotImplemented"
+      - text: "raise TypeError"
+      - text: "None"
+    answer: [1]
+    explain: "返回 NotImplemented 是标准协议，告诉 Python『我处理不了，请尝试反向操作或回退』。直接返回 False 会破坏 `a == b` 的对称性。"
+    tags: [魔法方法, 易错]
+    difficulty: 3
+
+  - qid: py-11-015
+    type: single
+    stem: "使用 `@functools.total_ordering` 时，至少需要实现？"
+    options:
+      - text: "全部六个比较方法"
+      - text: "__eq__ 加上一个排序方法（如 __lt__）"
+      - text: "只需要 __eq__"
+      - text: "只需要 __gt__"
+    answer: [1]
+    explain: "total_ordering 会根据 __eq__ + 一个排序运算自动补全 __le__/__gt__/__ge__/__ne__，省掉大量样板。"
+    tags: [魔法方法]
+    difficulty: 2
+
+  - qid: py-11-016
+    type: single
+    stem: "给 dataclass 写 `items: list = []` 作为字段默认值，会发生什么？"
+    options:
+      - text: "正常，所有实例共享一个列表"
+      - text: "ValueError：dataclass 直接禁止可变默认值"
+      - text: "自动转成 None"
+      - text: "只有第一个实例有列表"
+    answer: [1]
+    explain: "dataclass 在定义期就把『可变默认参数共享』这个坑堵死了，必须写成 `items: list = field(default_factory=list)`。"
+    tags: [dataclass, 易错]
+    difficulty: 3
+
+  - qid: py-11-017
+    type: single
+    stem: "在 `@dataclass` 中，带默认值的字段应该如何摆放？"
+    options:
+      - text: "必须放在没有默认值的字段之后"
+      - text: "必须放在最前面"
+      - text: "随便放，没有限制"
+      - text: "必须用 ClassVar 标注"
+    answer: [0]
+    explain: "否则自动生成的 __init__ 签名会变成 `(x, y=1, z)`，无默认值的参数跟在有默认值的参数后面是语法错误。"
+    tags: [dataclass, 易错]
+    difficulty: 3
+
+  - qid: py-11-018
+    type: single
+    stem: "想在 `@dataclass` 初始化完成后做参数校验或计算派生字段，应该？"
+    options:
+      - text: "手写 __init__ 覆盖自动生成的"
+      - text: "定义 `__post_init__` 方法"
+      - text: "写成 @property"
+      - text: "dataclass 做不到"
+    answer: [1]
+    explain: "自动生成的 __init__ 只做字段赋值，__post_init__ 在赋值完成后自动调用。frozen=True 时要用 object.__setattr__ 赋值。"
+    tags: [dataclass]
+    difficulty: 2
+
+  - qid: py-11-019
+    type: single
+    stem: "对于普通 `Enum`，`OrderStatus.PAID == 'paid'` 的结果是？"
+    options:
+      - text: "True"
+      - text: "False"
+      - text: "报错"
+      - text: "取决于具体值"
+    answer: [1]
+    explain: "枚举成员不等于它的原始值，这是设计使然。要比较值用 `.value`，或改用 StrEnum 才能直接和字符串比较。"
+    tags: [enum, 易错]
+    difficulty: 2
+
+  - qid: py-11-020
+    type: single
+    stem: "给枚举加 `@unique` 装饰器的作用是？"
+    options:
+      - text: "强制成员名唯一"
+      - text: "禁止出现值相同的成员，否则后者成为前者的别名并报错"
+      - text: "自动从 1 开始编号"
+      - text: "让枚举可被遍历"
+    answer: [1]
+    explain: "默认情况下同值成员会互相成为别名（后者指向前者）。@unique 会阻止这种别名，出现重复值直接报错。"
+    tags: [enum, 易错]
+    difficulty: 3
+
+  - qid: py-11-021
+    type: single
+    stem: "定义抽象属性时，装饰器顺序应写成？"
+    options:
+      - text: "@abstractmethod 在外、@property 在内"
+      - text: "@property 在外、@abstractmethod 在内（紧贴 def）"
+      - text: "顺序无所谓"
+      - text: "两者不能组合"
+    answer: [1]
+    explain: "必须 @property 在上、@abstractmethod 在下。反过来的话抽象性检查会失效，子类不实现也能实例化。"
+    tags: [abc, 易错]
+    difficulty: 3
+
+  - qid: py-11-022
+    type: single
+    stem: "描述符的 `__set_name__` 方法在什么时候被自动调用？"
+    options:
+      - text: "每次读取该属性时"
+      - text: "类定义完成时，告诉描述符它被分配到了哪个名字"
+      - text: "给属性赋值时"
+      - text: "实例化对象时"
+    answer: [1]
+    explain: "Python 3.6+ 特性。借助它，描述符能自动知道自己的属性名（如 _age），无需手动传 name，是比元类更轻的方案。"
+    tags: [描述符]
+    difficulty: 2

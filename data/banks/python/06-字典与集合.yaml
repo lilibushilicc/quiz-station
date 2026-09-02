@@ -125,3 +125,237 @@ questions:
     explain: "字典推导式形如 {键表达式: 值表达式 for 变量 in 可迭代对象 if 条件}，键重复时后面的覆盖前面的。"
     tags: [推导式]
     difficulty: 2
+
+  - qid: py-06-011
+    type: single
+    stem: "执行 `d = {'a': 1}; print(d.setdefault('a', 999))`，输出是？"
+    options:
+      - text: "999"
+      - text: "1（键已存在时返回原值，不会覆盖）"
+      - text: "None"
+      - text: "报错"
+    answer: [1]
+    explain: "setdefault(key, default) 在键存在时返回现有值，键不存在时才插入 default 并返回它。常用于分组等『有则取、无则设』场景。"
+    tags: [字典, 方法]
+    difficulty: 2
+
+  - qid: py-06-012
+    type: single
+    stem: "关于 `d.setdefault(key, expensive())` 中默认值的求值时机，正确的是？"
+    options:
+      - text: "默认值只在键不存在时才会被计算"
+      - text: "无论键是否存在，默认值表达式都会被先求值（Python 没有惰性求值）"
+      - text: "setdefault 永远都会插入默认值"
+      - text: "只对不存在的键求值一次"
+    answer: [1]
+    explain: "Python 会先把函数参数求值好再传入，所以即使键已存在，expensive() 也会被白白调用。构造代价高时用 if key not in d: d[key] = expensive() 代替。"
+    tags: [字典, 易错]
+    difficulty: 3
+
+  - qid: py-06-013
+    type: single
+    stem: "执行 `d = dict.fromkeys(['a', 'b'], []); d['a'].append(1); print(d)`，结果是？"
+    options:
+      - text: "{'a': [1], 'b': []}"
+      - text: "{'a': [1], 'b': [1]}（所有键共享同一个列表对象）"
+      - text: "{'a': [], 'b': []}"
+      - text: "报错"
+    answer: [1]
+    explain: "fromkeys 的默认值只被求值一次，所以所有键指向同一个列表。正确做法是用字典推导式 {k: [] for k in keys} 让每次循环都新建列表。"
+    tags: [字典, 易错]
+    difficulty: 3
+
+  - qid: py-06-014
+    type: single
+    stem: "判断键是否存在于字典，推荐写法是？"
+    options:
+      - text: "if key in d.keys():  # 推荐"
+      - text: "if key in d:  # 直接对字典做成员测试，默认检查键"
+      - text: "两者都是错误写法"
+      - text: "if key in d.values():  # 用于检查键"
+    answer: [1]
+    explain: "in 作用于字典时默认就是检查键，写 .keys() 纯属多余噪音。注意 d.keys() 是动态视图，支持 & | - 等集合运算。"
+    tags: [字典]
+    difficulty: 1
+
+  - qid: py-06-015
+    type: single
+    stem: "执行 `config = {'a': 1}; print(config.pop('c', None))`，会怎样？"
+    options:
+      - text: "抛出 KeyError"
+      - text: "返回 None，不报错"
+      - text: "返回 {}"
+      - text: "删除整个 config 字典"
+    answer: [1]
+    explain: "pop(key, default) 在键不存在时返回默认值而不报错；不带默认值的 pop(key) 找不到才抛 KeyError。常用它『取出并移除』分页参数等。"
+    tags: [字典, 方法]
+    difficulty: 2
+
+  - qid: py-06-016
+    type: single
+    stem: "执行 `del {'a': 1}['b']`，会怎样？"
+    options:
+      - text: "静默忽略"
+      - text: "返回 None"
+      - text: "抛出 KeyError"
+      - text: "自动创建键 'b'"
+    answer: [2]
+    explain: "del 是语句不是方法，按键删除时键不存在同样抛 KeyError（且不返回任何值）。想安全删除用 pop(key, default)。"
+    tags: [字典, 易错]
+    difficulty: 2
+
+  - qid: py-06-017
+    type: single
+    stem: "执行 `d = {'a': 1, 'b': 2, 'c': 3}; print(d.popitem())`，输出是？"
+    options:
+      - text: "('a', 1)"
+      - text: "('c', 3)（3.7+ 保证弹出最后插入的键值对，LIFO）"
+      - text: "('b', 2)"
+      - text: "报错"
+    answer: [1]
+    explain: "popitem() 删除并返回最后插入的 (键, 值) 对；对空字典调用会抛 KeyError。Python 3.7+ 保证字典按插入顺序，所以 popitem 是 LIFO。"
+    tags: [字典, 方法]
+    difficulty: 2
+
+  - qid: py-06-018
+    type: single
+    stem: "配置合并 `defaults = {'a': 1}; user = {'a': 2}; print(defaults | user)`，结果是？"
+    options:
+      - text: "{'a': 1}"
+      - text: "{'a': 2}（右边的字典覆盖左边的同名键）"
+      - text: "{'a': 1, 'a': 2}"
+      - text: "报错"
+    answer: [1]
+    explain: "合并时后面的字典优先级更高，所以加载配置要写成 default_config | user_config，把用户配置放在右边才能覆盖默认值。"
+    tags: [字典, 合并]
+    difficulty: 2
+
+  - qid: py-06-019
+    type: single
+    stem: "执行 `a = {'db': {'host': 'localhost', 'port': 3306}}; b = {'db': {'host': '10.0.0.1'}}; print(a | b)`，结果是？"
+    options:
+      - text: "{'db': {'host': '10.0.0.1', 'port': 3306}}"
+      - text: "{'db': {'host': '10.0.0.1'}}（嵌套字典被整体替换，port 丢失）"
+      - text: "{'db': {'host': 'localhost', 'port': 3306}}"
+      - text: "报错"
+    answer: [1]
+    explain: "字典合并是浅层的，对嵌套字典只是把整个子字典替换掉，不会递归合并。需要深合并要自己写递归函数。"
+    tags: [字典, 合并, 易错]
+    difficulty: 3
+
+  - qid: py-06-020
+    type: single
+    stem: "执行 `from collections import defaultdict; d = defaultdict(list); _ = d['x']; print(len(d))`，结果是？"
+    options:
+      - text: "0"
+      - text: "1（读取不存在的键会自动插入该键）"
+      - text: "报错"
+      - text: "取决于默认值工厂"
+    answer: [1]
+    explain: "defaultdict 在『读取』不存在的键时也会自动插入默认值。在『统计后判断字典大小』的场景会导致数据错误，只读请用 get 或普通字典。"
+    tags: [collections, 易错]
+    difficulty: 3
+
+  - qid: py-06-021
+    type: single
+    stem: "执行 `from collections import Counter; c = Counter('aab'); print(c['z'])`，结果是？"
+    options:
+      - text: "0，且不会把 'z' 插入字典"
+      - text: "0，并自动插入 'z': 0"
+      - text: "抛出 KeyError"
+      - text: "返回 None"
+    answer: [0]
+    explain: "Counter 对缺失键返回 0 但不插入（比 defaultdict 更安全）。most_common(n) 取最多的 n 个，+ - & | 可做计数加减与交并运算。"
+    tags: [collections]
+    difficulty: 2
+
+  - qid: py-06-022
+    type: single
+    stem: "关于 `set` 和 `frozenset` 能否作为字典的键，正确的是？"
+    options:
+      - text: "两者都可以，set 也能当键"
+      - text: "只有 frozenset 能当键，set 会抛 TypeError"
+      - text: "两者都不能当键"
+      - text: "只有 set 能当键"
+    answer: [1]
+    explain: "frozenset 不可变且可哈希，能做字典的键或集合的元素；普通 set 可变不可哈希，当键会 TypeError。就像元组之于列表。"
+    tags: [集合, 哈希]
+    difficulty: 2
+
+  - qid: py-06-023
+    type: single
+    stem: "执行 `print(type({}))`，输出是？"
+    options:
+      - text: "<class 'set'>"
+      - text: "<class 'dict'>（{} 是空字典，不是空集合）"
+      - text: "<class 'frozenset'>"
+      - text: "<class 'tuple'>"
+    answer: [1]
+    explain: "因为字典出现得更早，{} 被分配给空字典。空集合必须写成 set()。只有空的时候特殊，非空 {1, 2} 仍是集合。"
+    tags: [集合, 易错]
+    difficulty: 1
+
+  - qid: py-06-024
+    type: single
+    stem: "执行 `print(list(dict.fromkeys([3, 1, 2, 1, 3])))`，结果是？"
+    options:
+      - text: "[1, 2, 3]"
+      - text: "[3, 1, 2]（去重且保持首次出现顺序）"
+      - text: "[3, 1, 2, 3]"
+      - text: "报错"
+    answer: [1]
+    explain: "set 去重会丢失顺序，Python 3.7+ 的 dict.fromkeys 在去重的同时保持插入顺序，是『保序去重』的惯用法。"
+    tags: [集合, 字典]
+    difficulty: 2
+
+  - qid: py-06-025
+    type: single
+    stem: "执行 `s = {1, 2}; s.discard(3); print(s)`，结果是？"
+    options:
+      - text: "抛出 KeyError"
+      - text: "正常执行，s 仍为 {1, 2}"
+      - text: "把 3 加入集合变成 {1, 2, 3}"
+      - text: "抛出 TypeError"
+    answer: [1]
+    explain: "discard 删除元素但不存在时静默忽略；remove 在元素不存在时抛 KeyError。日常删除首选 discard，除非你确定元素一定存在。"
+    tags: [集合]
+    difficulty: 1
+
+  - qid: py-06-026
+    type: single
+    stem: "关于字典视图的集合运算，正确的是？"
+    options:
+      - text: "keys()、values()、items() 都支持 & | - 等集合运算"
+      - text: "keys() 和 items() 支持，values() 不支持（会 TypeError，因为值可重复）"
+      - text: "都不支持集合运算"
+      - text: "只有 values() 支持"
+    answer: [1]
+    explain: "keys 和 items 视图的键唯一，支持集合运算（如 diff_config 找新增/删除/变化的键）；values 值可重复，不满足集合前提，做 & 等会报 TypeError。"
+    tags: [字典, 视图]
+    difficulty: 3
+
+  - qid: py-06-027
+    type: single
+    stem: "想让自定义类的实例能作为字典的键，正确的是？"
+    options:
+      - text: "只需定义 __eq__ 就够了"
+      - text: "必须同时定义 __eq__ 和 __hash__；只定义 __eq__ 会让对象变成不可哈希"
+      - text: "什么都不用定义，默认就能当键"
+      - text: "只需定义 __hash__ 就够了"
+    answer: [1]
+    explain: "黄金规则：a == b 为真时 hash(a) == hash(b) 必须为真。只重写 __eq__ 不写 __hash__，Python 会把 __hash__ 设为 None，对象就此不可哈希。"
+    tags: [哈希, 易错]
+    difficulty: 3
+
+  - qid: py-06-028
+    type: single
+    stem: "关于字符串的 `hash()`，正确的是？"
+    options:
+      - text: "同一字符串每次运行结果都一样"
+      - text: "不同进程可能不同（哈希随机化），不应把 hash() 结果持久化"
+      - text: "hash() 永远等于字符串长度"
+      - text: "hash() 等于对象的内存地址"
+    answer: [1]
+    explain: "Python 默认开启哈希随机化（PYTHONHASHSEED），防止构造哈希冲突发起 DoS 攻击。因此 hash() 结果不能存库或做分布式分片，需要稳定哈希请用 hashlib。"
+    tags: [哈希, 原理]
+    difficulty: 3

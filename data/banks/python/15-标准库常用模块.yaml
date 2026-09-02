@@ -108,3 +108,182 @@ questions:
     explain: "名字不带 - 前缀的是位置参数，带 -- 的是可选参数。required=True 可以把可选参数变成必填。"
     tags: [argparse]
     difficulty: 3
+
+  - qid: py-15-009
+    type: single
+    stem: "re.match(r'\\d+', 'abc123') 的返回结果是？"
+    options:
+      - text: "None（match 只从字符串开头匹配，'abc123' 开头不是数字）"
+      - text: "匹配到 '123'"
+      - text: "匹配到 'abc'"
+      - text: "抛异常"
+    answer: [0]
+    explain: "re.match 只在字符串开头尝试匹配；想从任意位置找第一个匹配用 re.search；想找全部用 re.findall/finditer。这是 Java 转 Python 最容易踩的坑（re.match 对应 lookingAt，不是 matches）。"
+    tags: [re, 易错]
+    difficulty: 2
+
+  - qid: py-15-010
+    type: single
+    stem: "正则 '<div>.*</div>' 作用在 '<div>a</div><div>b</div>' 上，默认（贪婪）会匹配到什么？"
+    options:
+      - text: "<div>a</div>"
+      - text: "<div>a</div><div>b</div>（一直吃到最后一个 >）"
+      - text: "<div>b</div>"
+      - text: "完全不匹配"
+    answer: [1]
+    explain: "量词默认贪婪，.* 会尽可能多吃。加 ? 变非贪婪：'<div>.*?</div>' 才只吃到第一个 </div>。"
+    tags: [re, 易错]
+    difficulty: 2
+
+  - qid: py-15-011
+    type: code
+    stem: "用 re 模块把日志里的 IP 打码（替换为 x.x.x.x）。"
+    template: |
+      import re
+
+      log = "127.0.0.1 - GET /api"
+      masked = re.{{blank}}(r"\d+\.\d+\.\d+\.\d+", "x.x.x.x", log)
+    blanks: ["sub"]
+    explain: "re.sub(pattern, repl, string) 把匹配到的内容替换成 repl 并返回新字符串（count=0 表示全部替换）。只处理第一个匹配用 re.subn，找全部匹配用 re.findall/finditer。"
+    tags: [re]
+    difficulty: 2
+
+  - qid: py-15-012
+    type: multiple
+    stem: "关于 collections.defaultdict，正确的是？（多选）"
+    options:
+      - text: "访问不存在的 key 时也会自动创建（值为工厂默认值），可能掩盖 bug"
+      - text: "用 int 工厂可让 d[k] += 1 直接工作，无需先判断 key 是否存在"
+      - text: "用 list 工厂适合做分组（自动给每个 key 一个空列表）"
+      - text: "defaultdict 和普通 dict 完全一样，没有任何副作用"
+    answer: [0, 1, 2]
+    explain: "默认工厂在『读取』不存在的 key 时也会创建缺省值，若逻辑希望未命中报错反而会被默默塞入空值。需要区分读写时用普通 dict + setdefault。"
+    tags: [collections, 易错]
+    difficulty: 2
+
+  - qid: py-15-013
+    type: single
+    stem: "关于 collections.Counter，说法错误的是？"
+    options:
+      - text: "访问不存在的键返回 0，不抛 KeyError"
+      - text: "most_common(n) 返回出现最多的 n 个元素及其次数"
+      - text: "两个 Counter 可以用 + / - 做计数合并"
+      - text: "Counter 只能统计字符串，不能统计其他可哈希对象"
+    answer: [3]
+    explain: "Counter 可接受任何可迭代对象（任意可哈希元素），缺失键返回 0，并支持 most_common、元素级 +/- 运算。"
+    tags: [collections]
+    difficulty: 2
+
+  - qid: py-15-014
+    type: single
+    stem: "需要频繁从列表头部弹出元素时，为什么该用 collections.deque 而非 list？"
+    options:
+      - text: "deque.popleft() 是 O(1)，list.pop(0) 是 O(n)"
+      - text: "deque 占用的内存更小"
+      - text: "list 不支持 pop(0)"
+      - text: "deque 能存不同类型的数据"
+    answer: [0]
+    explain: "list 头部删改是 O(n) 的搬移；deque 两端增删都是 O(1)。maxlen 还能做成定长滑动窗口（超出自动丢弃最旧元素）。"
+    tags: [collections]
+    difficulty: 2
+
+  - qid: py-15-015
+    type: code
+    stem: "用 heapq 实现『优先级越大越先出队』（提示：Python 只有最小堆）。"
+    template: |
+      import heapq
+
+      tasks = []
+
+      def add(priority, name):
+          heapq.heappush(tasks, ({{blank}}, name))
+
+      add(10, "紧急")
+      add(1, "普通")
+      while tasks:
+          prio, name = heapq.heappop(tasks)
+          print(name)
+    blanks: ["-priority"]
+    explain: "heapq 只有最小堆；想『最大优先』就存 (-优先级, 数据) 元组，heappop 弹出数值最小的（即负得最多的、原优先级最大的）。也可直接用 nlargest。"
+    tags: [heapq, 易错]
+    difficulty: 3
+
+  - qid: py-15-016
+    type: single
+    stem: "使用 bisect.bisect_left / insort 的前提是？"
+    options:
+      - text: "列表必须已按升序排序，否则插入位置无意义"
+      - text: "列表必须按降序排序"
+      - text: "列表元素必须都是数字"
+      - text: "没有前提，任意列表都行"
+    answer: [0]
+    explain: "bisect 基于二分查找，要求序列已升序。常用于『成绩区间 -> 等级』查表（bisect(breakpoints, score) 取索引）。插入 O(n)，查找 O(log n)。"
+    tags: [bisect]
+    difficulty: 2
+
+  - qid: py-15-017
+    type: single
+    stem: "itertools.groupby(data, key=...) 最容易踩的坑是？"
+    options:
+      - text: "先 sorted(data, key=...) 再 groupby"
+      - text: "直接对未排序的数据 groupby，期望相同 key 自动聚拢"
+      - text: "用 lambda 指定 key"
+      - text: "把每个分组转成 list 再处理"
+    answer: [1]
+    explain: "groupby 只在『相邻且相等』时分组，不会先把数据聚拢。与 SQL GROUP BY 不同，上游必须先按同一 key 排序，否则同一 key 分散在不同位置会被拆成多组。"
+    tags: [itertools, 易错]
+    difficulty: 3
+
+  - qid: py-15-018
+    type: code
+    stem: "用 functools.partial 预设参数，造一个『平方』函数。"
+    template: |
+      from functools import partial
+
+      def power(base, exp):
+          return base ** exp
+
+      square = {{blank}}(power, exp=2)
+    blanks: ["partial"]
+    explain: "partial 把部分参数固定生成新函数；位置参数补在最前，关键字参数（如 exp=2）固定。常用于固定回调参数或给 sort(key=...) 传带参比较。"
+    tags: [functools]
+    difficulty: 2
+
+  - qid: py-15-019
+    type: single
+    stem: "datetime.strftime('%Y-%m-%d %H:%M:%S') 中，%m 和 %M 分别代表？"
+    options:
+      - text: "%m 是分钟，%M 是月份"
+      - text: "%m 是月份，%M 是分钟"
+      - text: "两者都表示月份"
+      - text: "两者都表示分钟"
+    answer: [1]
+    explain: "%m = 月份，%M = 分钟（和 Java SimpleDateFormat 的 MM/mm 坑一样）。写反要么报错要么时间错乱。记忆：%M 带『M』inute。"
+    tags: [datetime, 易错]
+    difficulty: 2
+
+  - qid: py-15-020
+    type: multiple
+    stem: "关于 random 模块，对应正确的是？（多选）"
+    options:
+      - text: "randint(a, b) 返回 [a, b] 闭区间整数"
+      - text: "choice(seq) 随机取一个元素"
+      - text: "sample(seq, k) 无放回抽 k 个（不重复）；choices(seq, k=k) 有放回（可能重复）"
+      - text: "shuffle(seq) 原地打乱列表；seed() 可固定随机序列便于复现"
+    answer: [0, 1, 2, 3]
+    explain: "安全随机（密码、令牌、验证码）用 secrets 模块，不用 random（可预测）。seed() 固定序列便于测试和演示。"
+    tags: [random, 安全]
+    difficulty: 2
+
+  - qid: py-15-021
+    type: single
+    stem: "string.Template('Hello $name').substitute(name='Tom') 与 safe_substitute(name='Tom') 的区别在于？"
+    options:
+      - text: "完全一样，没有区别"
+      - text: "当模板里有未提供的变量时，substitute 抛 KeyError，safe_substitute 保留原样不报错"
+      - text: "substitute 会对变量转义，safe_substitute 不会"
+      - text: "safe_substitute 速度更快"
+    answer: [1]
+    explain: "Template 适合『模板来自外部/用户』的安全替换。substitute 缺变量即报错，safe_substitute 容错保留 $var，比 f-string 更适合不可信模板。"
+    tags: [string, 模板]
+    difficulty: 2

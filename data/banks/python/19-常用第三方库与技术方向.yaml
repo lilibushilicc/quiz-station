@@ -108,3 +108,199 @@ questions:
     explain: "典型场景：发邮件、生成报表、调第三方接口。要注意任务幂等、重试策略和结果后端的选择。"
     tags: [任务队列]
     difficulty: 3
+
+  - qid: py-19-009
+    type: single
+    stem: "关于 NumPy 的向量化（vectorization），正确的是？"
+    options:
+      - text: "a = np.array([1,2,3]); a * 2 会报错，必须用 for 循环"
+      - text: "a * 2 对整个数组逐元素运算，底层是 C 循环，比 Python for 快很多"
+      - text: "向量化只能用于一维数组"
+      - text: "np.array 返回的对象类型不是 ndarray"
+    answer: [1]
+    explain: "NumPy 的 ndarray 支持整体运算，a*2、a+另一个数组都是逐元素。底层由 C 实现，避免 Python 层循环，性能高几个数量级。任意维度数组都支持。"
+    tags: [NumPy]
+    difficulty: 2
+
+  - qid: py-19-010
+    type: code
+    stem: "用 NumPy 创建一个从 0 到 9 的数组，并 reshape 成 2 行 5 列。"
+    template: |
+      import numpy as np
+
+      a = np.arange({{blank}}, {{blank}})
+      a = a.reshape({{blank}}, {{blank}})
+    blanks: [0, 10, 2, 5]
+    explain: "np.arange(0, 10) 生成 [0..9]，不含上界。reshape 要求元素总数一致。arange 类似 range，但返回 ndarray，支持向量化运算。"
+    tags: [NumPy]
+    difficulty: 2
+
+  - qid: py-19-011
+    type: single
+    stem: "用 pandas 把 DataFrame 写入 CSV 时，常犯的错误是？"
+    options:
+      - text: "用 df.to_csv('a.csv') 会把行索引也写进文件，再次读取时可能多出 unnamed 列"
+      - text: "DataFrame 不能直接 to_csv"
+      - text: "to_csv 必须指定 index=True 才能保存数据"
+      - text: "pandas 写 CSV 会丢失所有列"
+    answer: [0]
+    explain: "默认 to_csv 会把整数行索引写出，再次 read_csv 会读出 unnamed 列。正确写法 df.to_csv('a.csv', index=False)。read_csv 读回来默认用 0..n 当索引。"
+    tags: [pandas, 易错]
+    difficulty: 2
+
+  - qid: py-19-012
+    type: single
+    stem: "pandas 里 `df.loc[行, 列]` 与 `df.iloc[行, 列]` 的区别是？"
+    options:
+      - text: "loc 按标签（名称）索引，iloc 按整数位置索引"
+      - text: "两者完全一样"
+      - text: "loc 只能取列，iloc 只能取行"
+      - text: "iloc 比 loc 快，所以应优先用 iloc"
+    answer: [0]
+    explain: "例如 df.loc[0, 'name'] 按行标签 0 和列名 name 取；df.iloc[0, 0] 按第 0 行第 0 列位置取。混用会 KeyError 或取错数据。"
+    tags: [pandas]
+    difficulty: 3
+
+  - qid: py-19-013
+    type: code
+    stem: "按 city 分组，求每组 score 的平均值。"
+    template: |
+      import pandas as pd
+
+      df = pd.DataFrame({"city": ["北京", "上海", "北京"], "score": [80, 90, 70]})
+      result = df.{{blank}}("city")["score"].{{blank}}()
+    blanks: [groupby, mean]
+    explain: "groupby 返回 GroupBy 对象，再对某一列做聚合（mean/sum/count）。注意 groupby('city')['score'].mean() 的链式写法。"
+    tags: [pandas]
+    difficulty: 3
+
+  - qid: py-19-014
+    type: single
+    stem: "用 `requests.get(url)` 请求一个返回 500 的接口，默认会发生什么？"
+    options:
+      - text: "立刻抛出 HTTPError 异常"
+      - text: "不会抛异常，需手动调用 `resp.raise_for_status()` 才会对 4xx/5xx 抛错"
+      - text: "返回 None"
+      - text: "自动重试"
+    answer: [1]
+    explain: "requests 默认只把状态码放进 resp.status_code，不抛异常。要显式 resp.raise_for_status() 才能对 4xx/5xx 抛 HTTPError。务必配合 timeout= 使用避免挂起。"
+    tags: [网络, 易错]
+    difficulty: 3
+
+  - qid: py-19-015
+    type: single
+    stem: "关于 `requests.Session`，正确的是？"
+    options:
+      - text: "每次请求都新建 Session 才能拿到正确响应"
+      - text: "Session 可复用 TCP 连接、自动保持 Cookie，适合需要登录态的多请求场景"
+      - text: "Session 不能设置 headers"
+      - text: "Session 是线程安全的，可在多线程间共享"
+    answer: [1]
+    explain: "with requests.Session() as s: 能复用连接、自动管理 Cookie，适合同站多点请求。它不是线程安全的，多线程应每线程一个 Session。"
+    tags: [网络]
+    difficulty: 3
+
+  - qid: py-19-016
+    type: code
+    stem: "用 BeautifulSoup 提取页面里所有 h1 标签的文本内容。"
+    template: |
+      from bs4 import BeautifulSoup
+
+      soup = BeautifulSoup(html, "html.parser")
+      for h in soup.{{blank}}_all("h1"):
+          print(h.{{blank}}_text())
+    blanks: [find, get]
+    explain: "find_all 返回标签列表，get_text() 取内部文本。解析器常用 'html.parser'（标准库自带）或 'lxml'。注意 resp.encoding 与 apparent_encoding 处理中文编码。"
+    tags: [爬虫]
+    difficulty: 2
+
+  - qid: py-19-017
+    type: single
+    stem: "matplotlib 想同时保存图片并弹窗显示，正确的是？"
+    options:
+      - text: "先 plt.show() 再 plt.savefig()，顺序无所谓"
+      - text: "应先 plt.savefig('a.png') 再 plt.show()，否则 show() 会清空当前图像"
+      - text: "savefig 必须在 plot 之前调用"
+      - text: "matplotlib 没有 savefig 函数"
+    answer: [1]
+    explain: "plt.show() 在某些后端会清空当前 figure，所以保存要放在 show 之前。脚本环境常用 savefig 代替 show 以避免弹窗。"
+    tags: [可视化, 易错]
+    difficulty: 2
+
+  - qid: py-19-018
+    type: single
+    stem: "Flask 里获取查询参数 name，若缺失则给默认值 'world'，正确写法是？"
+    options:
+      - text: "request.args['name']"
+      - text: "request.args.get('name', 'world')"
+      - text: "request.form.get('name')"
+      - text: "request.query('name')"
+    answer: [1]
+    explain: "request.args.get 读取 URL 查询参数，第二个参数是默认值；用 [] 取值时 key 不存在会抛 400。form 用于表单/JSON body。"
+    tags: [Web]
+    difficulty: 2
+
+  - qid: py-19-019
+    type: single
+    stem: "SQLAlchemy 中，往 session 添加对象后如何让更改真正落库？"
+    options:
+      - text: "add 之后自动落库，无需其他操作"
+      - text: "需要 session.commit() 提交事务"
+      - text: "需要 session.flush() 即可，不提交也永久保存"
+      - text: "调用 session.save() 而不是 add"
+    answer: [1]
+    explain: "session.add(obj) 只是放入会话，commit() 才写入数据库并结束事务。可配合 with Session() as s: 在退出时自动关闭。生产用 Alembic 做迁移而非裸 create_all。"
+    tags: [ORM]
+    difficulty: 3
+
+  - qid: py-19-020
+    type: single
+    stem: "scikit-learn 模型的标准使用流程是？"
+    options:
+      - text: "先 predict 再 fit"
+      - text: "先 fit(X, y) 训练，再 predict(X_new) 预测"
+      - text: "直接调用 model.run()"
+      - text: "必须手写梯度下降"
+    answer: [1]
+    explain: "sklearn 统一 API：estimator.fit(X, y) 拟合，predict 预测。LinearRegression 拟合 y=2x 后 predict([[5]]) 约得 [10.]。"
+    tags: [AI]
+    difficulty: 2
+
+  - qid: py-19-021
+    type: multiple
+    stem: "关于提升幸福感的小工具库，匹配正确的是？"
+    options:
+      - text: "Rich：终端输出美化（表格、进度条、彩色）"
+      - text: "loguru：一行配置好用的日志，替代标准库 logging 的繁琐"
+      - text: "Pydantic：数据校验与序列化，是 FastAPI 的基石"
+      - text: "Typer：基于类型注解快速写命令行工具"
+    answer: [0, 1, 2, 3]
+    explain: "这些是 Python 工程化常用库。Rich 美化终端，loguru 简化日志，Pydantic 做校验（FastAPI 依赖它），Typer 用类型注解写 CLI，比 argparse 省事。"
+    tags: [工具库]
+    difficulty: 2
+
+  - qid: py-19-022
+    type: single
+    stem: "关于 Polars 的惰性执行（lazy）模式，正确的是？"
+    options:
+      - text: "lazy() 模式下操作会立刻执行"
+      - text: "用 .lazy() 构建查询，最后 .collect() 才触发真正计算，便于查询优化"
+      - text: "Polars 比 pandas 慢"
+      - text: "Polars 用 Python 写成，无性能优势"
+    answer: [1]
+    explain: "Polars（Rust 实现）支持延迟执行 + 多线程查询优化，.lazy() 推迟计算，.collect() 才真正运行，大数据集常比 pandas 快数倍。"
+    tags: [数据]
+    difficulty: 3
+
+  - qid: py-19-023
+    type: code
+    stem: "用 NumPy 布尔索引取出数组中所有大于 2 的元素。"
+    template: |
+      import numpy as np
+
+      a = np.array([1, 4, 2, 5, 0])
+      result = a[{{blank}} > 2]
+    blanks: [a]
+    explain: "布尔索引：a[a > 2] 返回满足条件的元素组成的新数组 [4, 5]。这是向量化过滤的常用写法，比显式循环简洁高效。"
+    tags: [NumPy]
+    difficulty: 2

@@ -110,3 +110,157 @@ questions:
     explain: "Python 没有专门的多行注释语法。文档字符串用三引号，写在模块、类、函数的第一行，可通过 __doc__ 访问；普通注释用 #。"
     tags: [注释]
     difficulty: 1
+
+  - qid: py-01-010
+    type: single
+    stem: "在 Python 解释器里执行 `import this`，会发生什么？"
+    options:
+      - text: "打开 Python 官方文档网站"
+      - text: "在控制台打印出《Python 之禅》（The Zen of Python）"
+      - text: "启动一个内置的教程向导"
+      - text: "报错，因为 this 不是标准模块"
+    answer: [1]
+    explain: "`import this` 会打印 The Zen of Python，由 Tim Peters 写就，共 19 条格言（如『Explicit is better than implicit』『Readability counts』）。它是 Python 的一个经典内置彩蛋。"
+    tags: [设计哲学, 彩蛋]
+    difficulty: 1
+
+  - qid: py-01-011
+    type: single
+    stem: "直接运行 `python main.py`，Python 会把它编译成的字节码缓存到 `__pycache__` 目录吗？"
+    options:
+      - text: "会，和 import 的模块一样"
+      - text: "不会，只有被 `import` 的模块才会缓存字节码"
+      - text: "会，但文件名规则不同"
+      - text: "只在首次运行时缓存"
+    answer: [1]
+    explain: "只有被 import 的模块才会生成并缓存 .pyc 到 __pycache__。直接运行的入口脚本只执行一次，缓存没有收益，所以不产生 .pyc。__pycache__ 通常加入 .gitignore 不提交。"
+    tags: [运行机制, 易错]
+    difficulty: 2
+
+  - qid: py-01-012
+    type: single
+    stem: "Python 3 中表达式 `5 / 2` 和 `5 // 2` 的结果分别是？"
+    options:
+      - text: "2 和 2.5"
+      - text: "2.5 和 2"
+      - text: "2.5 和 2.5"
+      - text: "2 和 2"
+    answer: [1]
+    explain: "Python 3 的 / 是真除法，永远返回 float（5/2 == 2.5，整除也是 float 如 4/2==2.0）；// 是地板除（5//2 == 2）。这点和 Java 不同：Java 的 5/2 截断为 2。"
+    tags: [运算符, 易错]
+    difficulty: 2
+
+  - qid: py-01-013
+    type: single
+    stem: "在 Windows 上用官方推荐的 PyManager 安装 Python 3.14，正确的命令是？"
+    options:
+      - text: "py install 3.14"
+      - text: "pip install python==3.14"
+      - text: "python --install 3.14"
+      - text: "winget python 3.14"
+    answer: [0]
+    explain: "Python 3.14 时代官方主推 PyManager 安装管理器，用 `py install 3.14` 安装指定版本（无 GIL 版用 `py install 3.14t`），`py --list` 列出已装版本。多版本管理很方便，类比 Java 世界的 SDKMAN。"
+    tags: [环境]
+    difficulty: 2
+
+  - qid: py-01-014
+    type: single
+    stem: "想在当前目录快速起一个静态文件服务器供浏览器预览，应该用哪个命令？"
+    options:
+      - text: "python -m http.server 8000"
+      - text: "python serve . 8000"
+      - text: "python -c server(8000)"
+      - text: "python start server 8000"
+    answer: [0]
+    explain: "`python -m` 以模块方式运行标准库工具，`python -m http.server 8000` 会在当前目录起一个 HTTP 静态服务器，访问 http://localhost:8000。类似的还有 -m pip、-m venv、-m json.tool、-m calendar。"
+    tags: [环境, 命令]
+    difficulty: 2
+
+  - qid: py-01-015
+    type: single
+    stem: "文件被直接运行（`python mymod.py`）时，其内置变量 `__name__` 的值是？"
+    options:
+      - text: '"__main__"'
+      - text: "模块名 mymod"
+      - text: "None"
+      - text: '"__name__"'
+    answer: [0]
+    explain: "每个 .py 都有内置变量 __name__。直接运行时为字符串 '__main__'，被 import 时则等于模块名。所以 `if __name__ == '__main__':` 用来区分『直接运行』和『被导入』两种角色，是 Python 的强约定。"
+    tags: [入口, 易错]
+    difficulty: 2
+
+  - qid: py-01-016
+    type: single
+    stem: "在 Python 交互式解释器（REPL）里，下划线 `_` 的作用是？"
+    options:
+      - text: "保存上一个表达式的计算结果，便于接着算"
+      - text: "表示当前模块名"
+      - text: "表示注释的简写"
+      - text: "只在 .py 文件里有效"
+    answer: [0]
+    explain: "REPL 中 `_` 自动保存上一条表达式的结果，`_ + 50` 可继续计算。注意这特性只在 REPL 里有，写在 .py 文件里没有效果（普通 `_` 常作『我不用这个变量』的占位名）。"
+    tags: [REPL]
+    difficulty: 2
+
+  - qid: py-01-017
+    type: code
+    stem: "把一条信息输出到标准错误流（而不是默认的标准输出）。"
+    template: |
+      import sys
+      print("出错了", {{blank}}=sys.stderr)
+    blanks: ["file"]
+    explain: "print 的 file 参数指定输出目标，默认是 sys.stdout。设为 sys.stderr 可把错误/日志输出到标准错误流，与正常输出分离（类比 Java 的 System.err.println）。"
+    tags: [print]
+    difficulty: 2
+
+  - qid: py-01-018
+    type: single
+    stem: "Python 中没有被赋值给任何变量的三引号字符串（且不在模块/函数/类开头），它本质是？"
+    options:
+      - text: "一个真实的字符串对象，只是没人引用它"
+      - text: "被编译器直接丢弃的注释，不产生任何对象"
+      - text: "语法错误"
+      - text: "等同于 # 注释"
+    answer: [0]
+    explain: "三引号并不是真正的块注释，而是一个真实的字符串字面量（执行时创建后被丢弃）。只有 # 注释在编译阶段就被丢弃不产生字节码。docstring 之所以特殊，是因为它被绑定到 __doc__ 属性。"
+    tags: [注释, 易错]
+    difficulty: 2
+
+  - qid: py-01-019
+    type: single
+    stem: "下面这段代码会抛出什么错误？\n```python\nif score >= 60\n    print('及格')\n```"
+    options:
+      - text: "SyntaxError: expected ':'"
+      - text: "IndentationError"
+      - text: "TabError"
+      - text: "NameError"
+    answer: [0]
+    explain: "凡是后面跟代码块的关键字（if/elif/else/for/while/def/class/with/try 等）行尾都要冒号。漏写冒号是 SyntaxError: expected ':'。缩进错误则是 IndentationError（其子类 TabError 是混用 Tab/空格）。"
+    tags: [缩进, 易错]
+    difficulty: 1
+
+  - qid: py-01-020
+    type: single
+    stem: "Python 2.7 的正式停止维护（EOL）时间是？"
+    options:
+      - text: "2020 年 1 月 1 日"
+      - text: "2010 年 1 月 1 日"
+      - text: "2026 年 1 月 1 日"
+      - text: "从未停止维护"
+    answer: [0]
+    explain: "Python 2.7 在 2020-01-01 正式 EOL。现在（2026）看到 `print 'x'`（语句）或 `except X, e:` 就是 Python 2 老代码，应换资料。当前只学 Python 3（本系列以 3.14 为准）。"
+    tags: [版本]
+    difficulty: 2
+
+  - qid: py-01-021
+    type: single
+    stem: "关于『Python 慢』，哪种说法最准确？"
+    options:
+      - text: "指纯 Python 循环慢；Web/数据/AI 的瓶颈通常在 IO、数据库或 GPU，开发效率才是收益点"
+      - text: "Python 任何场景都比 Java 慢 10 倍以上"
+      - text: "Python 完全不能用于生产环境"
+      - text: "只有 CPython 慢，PyPy 和 CPython 一样慢"
+    answer: [0]
+    explain: "『Python 慢』主要指纯 Python 循环慢（比 Java 慢约 10~100 倍，因为 CPython 无 JIT、逐条解释）。但实际工作里数值计算走 NumPy（C/Fortran）、Web 瓶颈在 IO/数据库、AI 瓶颈在 GPU，执行速度往往不是瓶颈。"
+    tags: [性能]
+    difficulty: 2

@@ -106,3 +106,158 @@ questions:
     explain: "__slots__ 去掉了每个实例的 __dict__，成百上千万个对象时能省下可观内存，副作用是不能再随意加属性。"
     tags: [OOP, 性能]
     difficulty: 3
+
+  - qid: py-10-009
+    type: single
+    stem: "关于 `__new__` 与 `__init__`，正确的是？"
+    options:
+      - text: "__init__ 负责创建对象，__new__ 负责初始化"
+      - text: "__new__ 负责分配内存并创建新实例，__init__ 负责给已创建好的实例填充属性"
+      - text: "两者是同一个东西，只是名字不同"
+      - text: "Python 没有 __new__，只有 __init__"
+    answer: [1]
+    explain: "对象创建分两步：__new__（构造器）返回新实例，__init__（初始化器）只设置属性，其返回值必须是 None，否则抛 TypeError。"
+    tags: [OOP, 易错]
+    difficulty: 3
+
+  - qid: py-10-010
+    type: single
+    stem: "已知 `class C: def __init__(self, items=[]): self.items = items`。执行 `a = C(); b = C(); a.items.append(1)` 之后，`print(b.items)` 会输出？"
+    options:
+      - text: "[]"
+      - text: "[1]"
+      - text: "报错"
+      - text: "None"
+    answer: [1]
+    explain: "默认参数在定义时求值一次，所有实例共享同一个列表对象。应改为 `items=None` 哨兵，再在内部 `self.items = items if items is not None else []`。"
+    tags: [OOP, 易错]
+    difficulty: 3
+
+  - qid: py-10-011
+    type: single
+    stem: "关于 `@staticmethod`，正确的是？"
+    options:
+      - text: "调用时自动传入当前实例 self"
+      - text: "不自动传入 self 或 cls，相当于放在类命名空间里的普通函数"
+      - text: "必须先实例化才能调用"
+      - text: "和 @classmethod 完全等价"
+    answer: [1]
+    explain: "静态方法既不接收 self 也不接收 cls，本质就是模块级函数被收进类里。能用模块函数就别过度使用 @staticmethod。"
+    tags: [OOP]
+    difficulty: 2
+
+  - qid: py-10-012
+    type: single
+    stem: "已知 `class Base:` 中有 `@classmethod def create_bad(cls): return Base()`，`class Child(Base): pass`。那么 `Child.create_bad()` 返回的是哪个类的实例？"
+    options:
+      - text: "Base"
+      - text: "Child"
+      - text: "报错"
+      - text: "None"
+    answer: [0]
+    explain: "写死类名 `Base()` 永远返回 Base，破坏了多态。工厂方法应该用 `cls()`，这样子类调用时自动返回子类实例。"
+    tags: [OOP, 易错]
+    difficulty: 3
+
+  - qid: py-10-013
+    type: single
+    stem: "已知 `class Dog(Animal): pass`，`d = Dog()`，则 `isinstance(d, Animal)` 和 `type(d) is Animal` 分别为？"
+    options:
+      - text: "都为 True"
+      - text: "isinstance 为 True，type is Animal 为 False"
+      - text: "都为 False"
+      - text: "isinstance 为 False，type is Animal 为 True"
+    answer: [1]
+    explain: "isinstance 考虑继承关系，type() 只看精确类型（不含子类）。除非明确要排除子类，否则优先用 isinstance。"
+    tags: [OOP, 易错]
+    difficulty: 2
+
+  - qid: py-10-014
+    type: single
+    stem: "类里写了 `self.__secret_key = 'x'`，在类外想读取这个值，正确写法是？"
+    options:
+      - text: "p.__secret_key"
+      - text: "p._Payment__secret_key"
+      - text: "p.secret_key"
+      - text: "无法访问"
+    answer: [1]
+    explain: "双下划线触发名称改写（name mangling），在编译期被改写成 `_类名__属性名`。它不是安全机制，一行就能绕过。"
+    tags: [OOP, 易错]
+    difficulty: 3
+
+  - qid: py-10-015
+    type: single
+    stem: "已知 `p = Product('键盘', 399.0, 10)`，接着执行 `p.stcok = 5`（把 `stock` 拼错了），再 `print(p.stock)` 会怎样？"
+    options:
+      - text: "报错 AttributeError"
+      - text: "静默创建一个新属性 stcok，原 stock 保持不变"
+      - text: "覆盖 stock 的值"
+      - text: "给出警告但能运行"
+    answer: [1]
+    explain: "实例属性存在 __dict__ 字典里，拼错名字只会创建一个全新的属性，原数据不变，是运行时 bug 温床。可用 __slots__ 防御。"
+    tags: [OOP, 易错]
+    difficulty: 2
+
+  - qid: py-10-016
+    type: single
+    stem: "关于单下划线 `_name` 的约定，正确的是？"
+    options:
+      - text: "语法上完全能访问，只是告诉调用者『这是内部实现，别直接动』"
+      - text: "编译器强制禁止从外部访问"
+      - text: "等价于 Java 的 private"
+      - text: "只在类内部可见"
+    answer: [0]
+    explain: "单下划线纯属君子协定，运行时没有任何限制（除 `from module import *` 不会导入它）。双下划线才有名称改写。"
+    tags: [OOP]
+    difficulty: 2
+
+  - qid: py-10-017
+    type: single
+    stem: "子类 `Dog(Animal)` 的 `__init__` 里忘了写 `super().__init__()`，会发生？"
+    options:
+      - text: "编译/语法报错"
+      - text: "代码能正常运行创建对象，但父类属性不存在，访问时才抛 AttributeError"
+      - text: "Python 自动帮你调用父类构造"
+      - text: "创建对象时报 TypeError"
+    answer: [1]
+    explain: "Python 不强制调用父类构造。漏写不会立刻报错，错误现场离真正 bug 很远，所以养成第一行就 super().__init__ 的习惯。"
+    tags: [OOP, 易错]
+    difficulty: 3
+
+  - qid: py-10-018
+    type: single
+    stem: "类中定义了 `@property def radius(self): return self.radius`（getter 里又访问了 `self.radius`）。调用 `c.radius` 时会发生什么？"
+    options:
+      - text: "正常返回 _radius 的值"
+      - text: "RecursionError（无限递归）"
+      - text: "返回 None"
+      - text: "AttributeError"
+    answer: [1]
+    explain: "getter 里访问 self.radius 会再次触发 getter 自身，形成无限递归。必须访问另一个名字（惯例是 self._radius）。"
+    tags: [OOP, 易错]
+    difficulty: 3
+
+  - qid: py-10-019
+    type: single
+    stem: "Python 实例化 `Product('键盘', 399.0, 10)` 的本质是？"
+    options:
+      - text: "调用 new 关键字创建对象"
+      - text: "调用 `Product` 这个可调用对象本身（类是一等公民）"
+      - text: "创建一个字典"
+      - text: "直接调用 __init__ 且不需要 __new__"
+    answer: [1]
+    explain: "Python 没有 new 关键字，类本身是可调用对象，`type(Product)` 是 `type`。类可以赋值给变量、放进字典、当参数传递。"
+    tags: [OOP]
+    difficulty: 2
+
+  - qid: py-10-020
+    type: code
+    stem: "用 None 哨兵修复可变默认参数的共享问题。"
+    template: |
+      class Cart:
+          def __init__(self, items=None):
+              self.items = {{blank}} if items is not None else {{blank}}
+    blanks: ["items", "[]"]
+    explain: "默认参数在定义时求值一次，用 `[]` 会让所有实例共享同一列表。改为 None 哨兵，每次调用新建列表。"
+    tags: [OOP, 易错]
+    difficulty: 3

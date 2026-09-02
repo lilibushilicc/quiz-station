@@ -124,3 +124,159 @@ questions:
     explain: "带星号的目标会把剩余元素收集成列表，整个结构中最多只能有一个星号。first 得到 1，middle 得到 [2, 3, 4]，last 得到 5。"
     tags: [解包]
     difficulty: 2
+
+  - qid: py-02-011
+    type: single
+    stem: "在 Python 中，`True + True` 和 `sum([True, False, True])` 的结果分别是？"
+    options:
+      - text: "2 和 2"
+      - text: "True 和 True"
+      - text: "报错"
+      - text: "1 和 1"
+    answer: [0]
+    explain: "bool 是 int 的子类，True 等价于 1、False 等价于 0。因此 True+True==2，sum([True,False,True])==2。这正是『统计满足条件的个数』常用 `sum(x > 0 for x in lst)` 的原理。"
+    tags: [bool, 易错]
+    difficulty: 2
+
+  - qid: py-02-012
+    type: single
+    stem: "下面这个函数连续调用会发生什么？\n```python\ndef add(item, target=[]):\n    target.append(item)\n    return target\n```\n依次执行 `add('A')`、`add('B')`？"
+    options:
+      - text: "分别返回 ['A'] 和 ['B']"
+      - text: "分别返回 ['A'] 和 ['A', 'B']"
+      - text: "两次都返回 ['A', 'B']"
+      - text: "报错"
+    answer: [1]
+    explain: "默认参数只在函数定义时求值一次，之后所有调用共享同一个列表对象。所以第二次调用会带上第一次追加的 'A'。铁律：默认参数只用不可变对象（None/数字/字符串/元组），需要可变默认值用 None 做哨兵、在函数体内创建。"
+    tags: [函数, 易错]
+    difficulty: 3
+
+  - qid: py-02-013
+    type: single
+    stem: "`int(3.99)` 和 `int(-3.99)` 的结果分别是？"
+    options:
+      - text: "3 和 -3"
+      - text: "4 和 -4"
+      - text: "3 和 -4"
+      - text: "4 和 -3"
+    answer: [0]
+    explain: "int() 对 float 是向零截断（不是四舍五入）：int(3.99)==3，int(-3.99)==-3。想四舍五入用 round()，向下取整用 math.floor()，向上取整用 math.ceil()。"
+    tags: [类型转换, 易错]
+    difficulty: 2
+
+  - qid: py-02-014
+    type: single
+    stem: "表达式 `None == 0`、`None == []`、`None == False` 的结果分别是？"
+    options:
+      - text: "全部为 False"
+      - text: "全部为 True"
+      - text: "True、False、True"
+      - text: "只有 None == False 为 True"
+    answer: [0]
+    explain: "None 是 NoneType 的唯一实例，不等于 0、空字符串、空列表、False。判断空值必须用 `is None`。注意 None == x 在语法上允许（PEP 8 仍建议用 is），但 `is` 不会被 __eq__ 重载欺骗。"
+    tags: [None, 易错]
+    difficulty: 2
+
+  - qid: py-02-015
+    type: single
+    stem: "函数 `def f(n=None):\n    if not n:\n        n = 10\n    return n`，调用 `f(0)` 返回？"
+    options:
+      - text: "0"
+      - text: "10"
+      - text: "None"
+      - text: "报错"
+    answer: [1]
+    explain: "`not n` 在 n=0 时也为真（0 是 falsy），于是把 0 当成了『没传参』而覆盖了。当 0、空串、空列表是合法输入时，必须用 `if n is None` 判断，不能用 `if not n`。"
+    tags: [真值测试, 易错]
+    difficulty: 3
+
+  - qid: py-02-016
+    type: single
+    stem: "`t = (1, 2, [3, 4])` 之后执行 `t[2].append(5)`，结果如何？"
+    options:
+      - text: "合法，t 变成 (1, 2, [3, 4, 5])"
+      - text: "报错，因为元组不可变"
+      - text: "t 仍是 (1, 2, [3, 4])"
+      - text: "t 变成 (1, 2, 5)"
+    answer: [0]
+    explain: "元组的不可变是指『它保存的引用不能变』，但被引用的列表对象自身能否修改元组管不着。`t[2].append(5)` 改的是列表，合法。这也是为什么装了可变对象的元组不能做字典的键（unhashable）。"
+    tags: [可变性, 易错]
+    difficulty: 3
+
+  - qid: py-02-017
+    type: single
+    stem: "执行 `board = [['-'] * 3] * 3` 后，`board[0][0] = 'X'`，board 会变成？"
+    options:
+      - text: "[['X','-','-'], ['X','-','-'], ['X','-','-']]"
+      - text: "[['X','-','-'], ['-','-','-'], ['-','-','-']]"
+      - text: "报错"
+      - text: "[['X','-','-']] * 3"
+    answer: [0]
+    explain: "外层 `* 3` 只是把同一个内层列表的引用复制了 3 份，三行共享同一列表对象，改一行全变。正确写法是 `[['-']*3 for _ in range(3)]`（每次循环新建列表）。注意 `'-'*3` 本身没问题（字符串不可变，共享无所谓）。"
+    tags: [可变对象, 易错]
+    difficulty: 3
+
+  - qid: py-02-018
+    type: single
+    stem: "用 `copy.copy` 浅拷贝 `original = [1, 2, [3, 4]]` 得 `shallow`，再执行 `shallow[2].append(5)`，`original` 会怎样？"
+    options:
+      - text: "original 变成 [1, 2, [3, 4, 5]]"
+      - text: "original 不变，仍是 [1, 2, [3, 4]]"
+      - text: "original 变成 [1, 2, [3, 4], 5]"
+      - text: "报错"
+    answer: [0]
+    explain: "浅拷贝只复制最外层，嵌套的可变对象（内层列表）仍是共享的。改嵌套层会同时影响原对象。要完全独立需 `copy.deepcopy`（递归拷贝所有层）。"
+    tags: [拷贝, 易错]
+    difficulty: 3
+
+  - qid: py-02-019
+    type: single
+    stem: "函数 `def f(items):\n    items = [9]`，调用 `data = [1]; f(data); print(data)`，输出是？"
+    options:
+      - text: "[1]"
+      - text: "[9]"
+      - text: "[]"
+      - text: "报错"
+    answer: [0]
+    explain: "Python 传参是『传对象引用』（call by object reference）。给形参重新赋值（items = [9]）只是把形参这张便利贴撕下贴别处，不影响外部实参 data。只有原地修改（如 items.append）才会影响外部。"
+    tags: [函数, 传参, 易错]
+    difficulty: 3
+
+  - qid: py-02-020
+    type: single
+    stem: "`round(0.5)` 和 `round(2.5)` 的结果分别是？"
+    options:
+      - text: "0 和 2"
+      - text: "1 和 3"
+      - text: "1 和 2"
+      - text: "0 和 3"
+    answer: [0]
+    explain: "Python 的 round 用银行家舍入（四舍六入五成双）：恰好 .5 时舍入到最近的偶数。round(0.5)==0，round(2.5)==2。Java 的 Math.round(2.5)==3 是普通四舍五入。要传统四舍五入用 Decimal(ROUND_HALF_UP)。"
+    tags: [浮点数, 易错]
+    difficulty: 3
+
+  - qid: py-02-021
+    type: single
+    stem: "在 Python 中计算 `2 ** 100`，结果会怎样？"
+    options:
+      - text: "得到精确的大整数，不会溢出"
+      - text: "溢出变成负小数"
+      - text: "等于 16（对位宽取模，像 Java 的 1<<100）"
+      - text: "报错"
+    answer: [0]
+    explain: "Python 的 int 是任意精度，只受内存限制，2**100 精确可算。Java 的 int/long 固定位宽会静默溢出，大数要走 BigInteger。注意大整数运算比固定位宽慢。"
+    tags: [int, 数值]
+    difficulty: 2
+
+  - qid: py-02-022
+    type: single
+    stem: "`list('abc')` 和 `list({'x': 1, 'y': 2})` 的结果分别是？"
+    options:
+      - text: "['a', 'b', 'c'] 和 ['x', 'y']"
+      - text: "['abc'] 和 [1, 2]"
+      - text: "['a', 'b', 'c'] 和 [1, 2]"
+      - text: "'abc' 和 {'x', 'y'}"
+    answer: [0]
+    explain: "list 对字符串按字符拆成 ['a','b','c']；对字典默认遍历键，得到 ['x','y']（要值用 .values()，要键值对用 .items()）。"
+    tags: [类型转换]
+    difficulty: 2

@@ -102,3 +102,178 @@ questions:
     explain: "send 之前必须先 next() 或 send(None) 让生成器停在 yield 处；throw() 用来在暂停点注入异常，close() 用来提前终止。"
     tags: [生成器]
     difficulty: 3
+
+  - qid: py-12-009
+    type: single
+    stem: "执行 `it = iter([1, 2, 3]); print(list(it)); print(list(it))`，第二次 `list(it)` 的输出是？"
+    options:
+      - text: "[1, 2, 3]"
+      - text: "[]"
+      - text: "两次都报错"
+      - text: "None"
+    answer: [1]
+    explain: "迭代器是一次性的游标，耗尽后再次遍历就是空的。map/filter/zip/enumerate 返回的都是迭代器，同样只能消费一次。"
+    tags: [迭代器, 易错]
+    difficulty: 2
+
+  - qid: py-12-010
+    type: single
+    stem: "`next(it, '没了')` 在迭代器已经耗尽时返回什么？"
+    options:
+      - text: "抛 StopIteration"
+      - text: "返回 '没了'（默认值）"
+      - text: "返回 None"
+      - text: "返回 0"
+    answer: [1]
+    explain: "next 的第二个参数提供默认值，耗尽时不再抛异常，直接返回它。等价于 try/except StopIteration 的简写。"
+    tags: [迭代器]
+    difficulty: 1
+
+  - qid: py-12-011
+    type: single
+    stem: "`for x in obj:` 在底层等价于？"
+    options:
+      - text: "反复调用 obj[x] 取下标"
+      - text: "调用 iter(obj) 取迭代器，然后循环 next() 直到捕获 StopIteration"
+      - text: "直接调用 obj.__next__"
+      - text: "用索引 0,1,2... 直到越界"
+    answer: [1]
+    explain: "for 自动调 iter 拿到迭代器，再不断 next，把 StopIteration 当作正常结束信号静默捕获，所以不需要写 try。"
+    tags: [迭代器]
+    difficulty: 2
+
+  - qid: py-12-012
+    type: single
+    stem: "一个代表『数据集合』（可反复遍历）的类，`__iter__` 应该怎么写？"
+    options:
+      - text: "返回 self，这样最省事"
+      - text: "返回一个全新的迭代器对象，让每次 for 都从干净状态开始"
+      - text: "返回 None"
+      - text: "返回 list(self)"
+    answer: [1]
+    explain: "返回 self 会让对象变成一次性，嵌套循环和重复遍历都会出问题（内层把状态吃光）。文件对象和生成器才返回 self。"
+    tags: [迭代器, 易错]
+    difficulty: 3
+
+  - qid: py-12-013
+    type: single
+    stem: "调用一个包含 `yield` 的生成器函数 `g = gen()` 时，会怎样？"
+    options:
+      - text: "立即从头到尾执行函数体"
+      - text: "只创建生成器对象，函数体不执行，直到第一次 next()"
+      - text: "报错"
+      - text: "返回 None"
+    answer: [1]
+    explain: "只要函数体里有 yield，它就不再是普通函数：调用只返回生成器对象，函数体在首个 next() 跑到第一个 yield 才真正开始执行。"
+    tags: [生成器, 易错]
+    difficulty: 2
+
+  - qid: py-12-014
+    type: single
+    stem: "生成器里写 `return '结束'` 的作用是？"
+    options:
+      - text: "把 '结束' 作为最后一个被 yield 产出的值"
+      - text: "提前结束迭代，'结束' 被包进 StopIteration.value，普通 for 拿不到"
+      - text: "和 yield 一样把值交给调用方"
+      - text: "语法错误"
+    answer: [1]
+    explain: "生成器的 return 是终止信号，返回值进入 StopIteration 异常对象，常见用途是在 yield from 中向上传递结果。"
+    tags: [生成器]
+    difficulty: 3
+
+  - qid: py-12-015
+    type: single
+    stem: "执行 `threshold = 3; g = (x for x in range(10) if x > threshold); threshold = 8; print(list(g))`，输出是？"
+    options:
+      - text: "[4, 5, 6, 7, 8, 9]"
+      - text: "[9]"
+      - text: "[]"
+      - text: "报错"
+    answer: [1]
+    explain: "生成器捕获的是变量而不是值，执行到判断时 threshold 已是 8。要固定当时的值就得立即 list() 固化或用默认参数捕获。"
+    tags: [生成器, 易错]
+    difficulty: 3
+
+  - qid: py-12-016
+    type: single
+    stem: "生成器表达式和列表推导式相比，内存占用上？"
+    options:
+      - text: "两者差不多"
+      - text: "生成器表达式内存恒定，与数据量几乎无关"
+      - text: "列表推导式更省内存"
+      - text: "生成器表达式始终更大"
+    answer: [1]
+    explain: "生成器只保存『如何计算下一个值』的信息，不持有数据本身；列表推导式会立刻物化出完整列表。"
+    tags: [生成器]
+    difficulty: 2
+
+  - qid: py-12-017
+    type: single
+    stem: "数据量很小且要立刻全部用掉时，生成器一定更快吗？"
+    options:
+      - text: "一定更快"
+      - text: "不一定，列表推导式反而更快，生成器的优势在内存和惰性而非原始速度"
+      - text: "两者速度完全一样"
+      - text: "取决于解释器版本"
+    answer: [1]
+    explain: "生成器每次 next() 都有函数调用和状态切换开销。小数据场景别为了『显得专业』硬上生成器。"
+    tags: [生成器]
+    difficulty: 2
+
+  - qid: py-12-018
+    type: single
+    stem: "刚创建生成器 `g = accumulator()` 后直接调用 `g.send(10)`，会怎样？"
+    options:
+      - text: "正常工作并返回结果"
+      - text: "TypeError: can't send non-None value to a just-started generator"
+      - text: "返回 10"
+      - text: "AttributeError"
+    answer: [1]
+    explain: "新建生成器停在函数开头、还没到任何 yield，此时 send 非 None 值会报错。必须先 next(g) 或 g.send(None) 预激。"
+    tags: [生成器, 易错]
+    difficulty: 3
+
+  - qid: py-12-019
+    type: single
+    stem: "在生成器里捕获到 `GeneratorExit`（来自 close()）时，应该？"
+    options:
+      - text: "吞掉不处理，让函数正常返回"
+      - text: "做完清理后重新 raise，否则会报 RuntimeError"
+      - text: "返回 None 即可"
+      - text: "忽略异常继续 yield"
+    answer: [1]
+    explain: "close() 会注入 GeneratorExit，生成器可以清理资源但必须让它继续向上传播，吞掉会触发 RuntimeError。"
+    tags: [生成器, 易错]
+    difficulty: 3
+
+  - qid: py-12-020
+    type: single
+    stem: "关于 `yield from`，正确的是？"
+    options:
+      - text: "它只是 `for x in it: yield x` 的语法糖，没有额外能力"
+      - text: "除了转发值，还会透传子生成器的 send()/throw() 并接收其 return 值"
+      - text: "它会把子生成器的结果自动并行执行"
+      - text: "只能用于列表"
+    answer: [1]
+    explain: "yield from 不是简单语法糖，它维护与子生成器的双向通道，是早期协程（asyncio 之前）的实现基础。"
+    tags: [生成器]
+    difficulty: 3
+
+  - qid: py-12-021
+    type: code
+    stem: "补全自定义迭代器，实现从 n 倒数到 1。"
+    template: |
+      class Countdown:
+          def __init__(self, n):
+              self.n = n
+          def __iter__(self):
+              return self
+          def {{blank}}(self):
+              if self.n <= 0:
+                  raise StopIteration
+              self.n -= 1
+              return self.n + 1
+    blanks: ["__next__"]
+    explain: "迭代器必须实现 __iter__（返回 self）和 __next__；__next__ 在没有更多元素时抛 StopIteration，for 会据此停下。"
+    tags: [迭代器]
+    difficulty: 2

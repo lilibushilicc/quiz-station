@@ -135,3 +135,233 @@ questions:
     explain: "x % 2 为真时保留，即奇数 1 和 3。条件写在最后，多个 for 按从左到右的顺序嵌套。"
     tags: [推导式]
     difficulty: 1
+
+  - qid: py-20-011
+    type: single
+    stem: "下面函数多次调用的输出是？\n```python\ndef f(x=[]):\n    x.append(1)\n    return x\nprint(f(), f())\n```"
+    options:
+      - text: "[1] [1]"
+      - text: "[1] [1, 1]"
+      - text: "[1, 1] [1, 1, 1]"
+      - text: "报错"
+    answer: [1]
+    explain: "默认列表在函数定义时创建一次，所有调用共享同一对象。第一次 [1]，第二次在它基础上再 append 得到 [1,1]。正确写法：def f(x=None): x = x or []。"
+    tags: [默认参数, 易错, 高频]
+    difficulty: 3
+
+  - qid: py-20-012
+    type: single
+    stem: "关于 `==` 与 `is`，正确的是？"
+    options:
+      - text: "比大小永远用 is，比身份用 =="
+      - text: "`==` 比值（调用 __eq__），`is` 比身份（id 是否相同）；比大小永远用 =="
+      - text: "小整数缓存意味着 `257 is 257` 也一定是 True"
+      - text: "is 比 == 更快，所以应该用 is 比较数值"
+    answer: [1]
+    explain: "-5~256 的小整数被缓存，a=256;b=256 可能 a is b 为 True；但 257 通常 is 为 False。永远用 == 比较值大小。"
+    tags: [相等性, 易错, 高频]
+    difficulty: 3
+
+  - qid: py-20-013
+    type: single
+    stem: "`[x for x in range(10**8)]` 与 `(x for x in range(10**8))` 的主要区别是？"
+    options:
+      - text: "两者都立刻生成完整列表"
+      - text: "前者立刻生成完整列表占用大量内存；后者是生成器，惰性逐个产出，省内存且只能遍历一次"
+      - text: "后者不能用于 for 循环"
+      - text: "前者比后者快很多所以优先用"
+    answer: [1]
+    explain: "圆括号生成的是生成器对象，惰性计算，适合大数据流；列表推导 [] 立即物化全部，占内存。生成器只能迭代一次。"
+    tags: [生成器, 推导式, 高频]
+    difficulty: 2
+
+  - qid: py-20-014
+    type: single
+    stem: "关于 tuple 的不可变性，正确的是？"
+    options:
+      - text: "tuple 完全不可修改，任何元素都不能变"
+      - text: "tuple 只保证元素的引用不变，元素本身若是可变对象仍可改（如 t[0].append(3)）"
+      - text: "tuple 里不能放 list"
+      - text: "tuple 的元素在创建后可以用 t[0]=1 修改"
+    answer: [1]
+    explain: "t = ([1,2], 3); t[0].append(3) 合法，因为元组只约束引用。要完全不可变需要用 (1, 2, 3) 或不放可变对象。"
+    tags: [数据结构, 易错, 高频]
+    difficulty: 3
+
+  - qid: py-20-015
+    type: single
+    stem: "下面哪行代码会抛出 TypeError？"
+    options:
+      - text: "d = {(1, 2): 'a'}"
+      - text: "d = {frozenset({1}): 'a'}"
+      - text: "d = {[1, 2]: 'a'}"
+      - text: "d = {'a': 1}"
+    answer: [2]
+    explain: "字典/集合的键必须可哈希（不可变）。list 是可变对象，不可哈希，{ [1,2]: 'a' } 直接 TypeError: unhashable type。tuple/frozenset/str 都可作键。"
+    tags: [哈希, 易错, 高频]
+    difficulty: 2
+
+  - qid: py-20-016
+    type: single
+    stem: "Python 字典插入顺序从哪个版本起成为语言规范保证？"
+    options:
+      - text: "Python 3.6（已是规范）"
+      - text: "Python 3.7 起成为语言规范（3.6 仅是 CPython 实现细节）"
+      - text: "Python 2.7 就保证了"
+      - text: "字典永远是无序的"
+    answer: [1]
+    explain: "3.6 是 CPython 的实现细节，3.7 起插入有序成为官方语言规范。这也是 dict.fromkeys / list(dict) 去重保序能成立的前提。"
+    tags: [字典, 高频]
+    difficulty: 2
+
+  - qid: py-20-017
+    type: code
+    stem: "下面写法能让 `[f() for f in funcs]` 得到 [0, 1, 2] 而不是 [2, 2, 2]。"
+    template: |
+      funcs = [lambda {{blank}}=i: i for i in range(3)]
+      print([f() for f in funcs])
+    blanks: [i]
+    explain: "循环变量 i 在闭包里是晚绑定（调用时取值，已变成 2）。用默认参数 lambda i=i: i 在定义时就把当前值固定下来，得到 [0,1,2]。"
+    tags: [闭包, 易错, 高频]
+    difficulty: 3
+
+  - qid: py-20-018
+    type: single
+    stem: "在嵌套函数里想修改外层（非全局）函数的变量，应该用？"
+    options:
+      - text: "global"
+      - text: "nonlocal"
+      - text: "直接赋值即可，无需声明"
+      - text: "static"
+    answer: [1]
+    explain: "global 声明修改全局变量；nonlocal 声明修改外层（enclosing）函数的变量。不声明直接赋值会创建一个局部变量，外层的不受影响。"
+    tags: [作用域, 高频]
+    difficulty: 2
+
+  - qid: py-20-019
+    type: single
+    stem: "类里以双下划线开头的属性（如 __x）会被如何处理？"
+    options:
+      - text: "完全私有，外部无法访问"
+      - text: "触发名称改写（name mangling），变成 _ClassName__x，并不是真正私有"
+      - text: "与单下划线 _x 行为完全相同"
+      - text: "会导致类无法实例化"
+    answer: [1]
+    explain: "Python 没有真正私有。__x 会被改写为 _类名__x，外部仍可通过该名字访问。_x 只是约定（受保护），__x 多一层改写。"
+    tags: [OOP, 易错]
+    difficulty: 3
+
+  - qid: py-20-020
+    type: code
+    stem: "用切片把字符串 s 反转。"
+    template: |
+      reversed_s = s[{{blank}}]
+    blanks: ["::-1"]
+    explain: "s[::-1] 步长为 -1，从尾到头取全部字符实现反转。这是 Python 反转字符串/列表最简洁的写法。"
+    tags: [字符串, 代码题]
+    difficulty: 1
+
+  - qid: py-20-021
+    type: single
+    stem: "`s = '中文'; b = s.encode('utf-8')` 后，len(s) 与 len(b) 分别是？"
+    options:
+      - text: "2 和 2"
+      - text: "2 和 6"
+      - text: "6 和 2"
+      - text: "3 和 3"
+    answer: [1]
+    explain: "str 是 Unicode 字符序列，'中文' 有 2 个字符；UTF-8 编码下每个汉字 3 字节，共 6 字节。跨平台文件 IO 应显式指定 encoding='utf-8'。"
+    tags: [编码, 高频]
+    difficulty: 2
+
+  - qid: py-20-022
+    type: single
+    stem: "类里定义 `__slots__` 的主要目的是？"
+    options:
+      - text: "让类支持多继承"
+      - text: "限制实例可拥有的属性名，从而节省大量对象的内存"
+      - text: "让属性自动变成私有"
+      - text: "加速方法调用"
+    answer: [1]
+    explain: "__slots__ 用元组声明允许的属性名，不再为每个实例建 __dict__，对海量对象（如 ORM 行对象）能显著降低内存占用。"
+    tags: [内存, 性能]
+    difficulty: 3
+
+  - qid: py-20-023
+    type: single
+    stem: "关于 `functools.lru_cache`，正确的是？"
+    options:
+      - text: "它用于给函数加锁防止并发"
+      - text: "它缓存函数的调用结果（记忆化），相同参数直接返回缓存，斐波那契可从指数级降到线性"
+      - text: "它会修改函数的返回值类型"
+      - text: "lru_cache 只能用在不带参数的函数上"
+    answer: [1]
+    explain: "lru_cache 是装饰器，做最近最少使用缓存，常配合递归（如斐波那契）把指数复杂度降为线性。它不影响返回值语义。"
+    tags: [装饰器, 函数式, 高频]
+    difficulty: 2
+
+  - qid: py-20-024
+    type: single
+    stem: "关于 `__new__` 与 `__init__`，正确的是？"
+    options:
+      - text: "__init__ 负责创建实例，__new__ 负责初始化"
+      - text: "__new__ 负责创建实例（类方法，返回实例），__init__ 负责初始化；一般只需重写 __init__"
+      - text: "两者都是静态方法"
+      - text: "必须同时重写两者"
+    answer: [1]
+    explain: "__new__ 是类方法，先创建并返回实例；__init__ 再对其初始化。单例常用 __new__ 控制唯一实例。普通类只需定义 __init__。"
+    tags: [OOP, 高频]
+    difficulty: 3
+
+  - qid: py-20-025
+    type: single
+    stem: "多个装饰器叠加 `@a @b @c def f():` 时，包裹与执行顺序是？"
+    options:
+      - text: "等价于 f = c(b(a(f)))，调用时从最外层 a 进入"
+      - text: "等价于 f = a(b(c(f)))，调用时从 c 进入"
+      - text: "装饰器顺序无关，结果一样"
+      - text: "只有最后一个装饰器生效"
+    answer: [0]
+    explain: "语法糖等价于 f = a(b(c(f)))，c 最靠近函数因此最内层。请求进来从最外层 a 的 wrapper 进入，依次 a→b→c→原函数。"
+    tags: [装饰器, 易错]
+    difficulty: 3
+
+  - qid: py-20-026
+    type: single
+    stem: "`with open('a.txt') as f:` 做了什么？"
+    options:
+      - text: "只是语法糖，等价于普通赋值"
+      - text: "进入时调用 __enter__，退出时（含异常）调用 __exit__ 释放资源，等价于 try/finally"
+      - text: "只在文件不存在时生效"
+      - text: "自动把文件内容读进内存"
+    answer: [1]
+    explain: "with 基于上下文管理器协议，保证资源（文件、连接）无论正常还是异常都会释放。手写可用 __enter__/__exit__ 或 @contextmanager。"
+    tags: [上下文, 高频]
+    difficulty: 2
+
+  - qid: py-20-027
+    type: single
+    stem: "Python 实现多态主要依靠？"
+    options:
+      - text: "强制 interface 声明"
+      - text: "鸭子类型：只要有需要的方法和属性，不强制继承关系"
+      - text: "全部用抽象基类约束"
+      - text: "编译期类型检查"
+    answer: [1]
+    explain: "“走起来像鸭子、叫起来像鸭子，那就是鸭子”。Python 靠鸭子类型实现多态，不要求继承同一接口；abc 可做强制约束但非必须。"
+    tags: [OOP, 高频]
+    difficulty: 2
+
+  - qid: py-20-028
+    type: code
+    stem: "用 defaultdict 把异位词（排序后相同）分到同一组。"
+    template: |
+      from collections import defaultdict
+
+      groups = defaultdict(list)
+      for w in words:
+          groups["".join({{blank}}(w))].append(w)
+    blanks: [sorted]
+    explain: "把词排序后作为分组的键，异位词排序结果相同。defaultdict(list) 在键不存在时自动给空列表，省去判断。"
+    tags: [数据结构, 代码题]
+    difficulty: 3

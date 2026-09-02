@@ -103,3 +103,163 @@ questions:
     explain: "它会让所有注解变成字符串、延迟求值，从而可以在旧版本里写 list[int] 这类语法，也解决了前向引用的问题。"
     tags: [类型注解]
     difficulty: 3
+
+  - qid: py-16-009
+    type: single
+    stem: "面向 Python 3.14 的新项目，标注「整数列表」最推荐的写法是？"
+    options:
+      - text: "list[int]（内置泛型，3.9+ 可用）"
+      - text: "List[int]（typing.List）"
+      - text: "Array[int]"
+      - text: "Vector[int]"
+    answer: [0]
+    explain: "Python 3.9+ 起内置容器支持下标，3.10 起官方推荐 list[int]；typing.List 仍兼容但新项目不必再写。Array/Vector 不是标准类型注解。"
+    tags: [类型注解, 泛型]
+    difficulty: 1
+
+  - qid: py-16-010
+    type: multiple
+    stem: "关于 collections.abc 的抽象容器（Sequence / Mapping / Callable / Iterable），正确的是？"
+    options:
+      - text: "Sequence[int] 表示可按下标访问的序列，list 和 tuple 都符合"
+      - text: "Callable[[int, str], bool] 表示接收 int 和 str、返回 bool 的函数类型"
+      - text: "函数入参用 Sequence 更宽松，能同时接收 list 和 tuple"
+      - text: "返回值也应尽量用 Sequence 这类抽象类型以隐藏实现"
+    answer: [0, 1, 2]
+    explain: "经验法则是「入参用抽象、出参用具体」：接收时用 Sequence/Iterable/Mapping 更宽容，返回时用具体 list/dict 行为更明确，这与 Java「入参用接口、出参用具体类」一致。"
+    tags: [类型注解, 容器]
+    difficulty: 3
+
+  - qid: py-16-011
+    type: single
+    stem: "用 `from typing import Final` 声明 `MAX: Final = 100`，下列说法正确的是？"
+    options:
+      - text: "运行时会禁止对 MAX 重新赋值"
+      - text: "它只给静态检查工具看，运行时并不强制；mypy/pyright 会拦截重新赋值"
+      - text: "等价于 Python 的 const 关键字"
+      - text: "必须同时写出类型，不能省略"
+    answer: [1]
+    explain: "Final 只约束静态检查阶段，运行时不强制（Python 没有 const 关键字）。类型可省略由推断得出，如 MAX_RETRY: Final = 3。"
+    tags: [类型注解, Final, 易错]
+    difficulty: 2
+
+  - qid: py-16-012
+    type: single
+    stem: "想约束某个参数只能是 'read' / 'write' / 'append' 三个字符串之一，最合适的类型是？"
+    options:
+      - text: "Literal['read', 'write', 'append']"
+      - text: "Enum('read', 'write', 'append')"
+      - text: "Constant[str]"
+      - text: "LiteralString"
+    answer: [0]
+    explain: "Literal[...] 把取值限定为列出的字面量，传不在集合里的字符串会被静态检查报错。LiteralString 是「字符串字面量」类型，与限定取值无关；枚举是另一种方案。"
+    tags: [类型注解, Literal]
+    difficulty: 2
+
+  - qid: py-16-013
+    type: code
+    stem: "用一个有上界的 TypeVar，约束泛型只允许 float 及其子类。"
+    template: |
+      from typing import TypeVar
+
+      T = TypeVar("T", {{blank}}=float)   # 只允许 float 及其子类
+
+      def half(x: T) -> T:
+          return x / 2
+    blanks: ["bound"]
+    explain: "TypeVar 的 bound= 参数设定上界，调用时只能传入该类型及其子类。另一种写法是 TypeVar('T', int, str) 直接列举允许的具体类型。"
+    tags: [泛型, TypeVar]
+    difficulty: 3
+
+  - qid: py-16-014
+    type: multiple
+    stem: "关于 `@overload`，正确的是？"
+    options:
+      - text: "它只是给静态检查工具描述多种合法调用形态，运行时真正执行的是最后一个不带 @overload 的实现"
+      - text: "Python 有真正的函数重载，同名不同参数会自动分派到不同实现"
+      - text: "@overload 定义的多签名里，真正的类型分派要在实现体里用 isinstance 自己写"
+      - text: "带 @overload 的函数可以有多个函数体分别执行"
+    answer: [0, 2]
+    explain: "Python 本身没有函数重载，@overload 纯粹是「声明」供类型检查器使用；真正按类型分派需在实现里用 isinstance 判断。多个 @overload 行只是签名说明，不会分派。"
+    tags: [类型注解, overload, 易错]
+    difficulty: 3
+
+  - qid: py-16-015
+    type: single
+    stem: "函数 `def double(x: int | str) -> int | str:` 中，在 `if isinstance(x, int):` 为真的分支内，x 被类型检查器推断为什么？"
+    options:
+      - text: "int | str（没有变化）"
+      - text: "int（类型被收窄）"
+      - text: "str"
+      - text: "Any"
+    answer: [1]
+    explain: "静态检查工具会做类型收窄（Type Narrowing）：经过 isinstance 判断后，分支内 x 被收窄为 int，可直接调用 int 方法；else 分支里收窄为 str。类似 Java 的 instanceof 模式变量。"
+    tags: [类型注解, 类型收窄]
+    difficulty: 2
+
+  - qid: py-16-016
+    type: single
+    stem: "关于 `Any`，最危险的特性是？"
+    options:
+      - text: "它会让使用该结果的整个表达式都变成 Any，检查工具一路放行，错误被隐藏"
+      - text: "它会让代码运行变慢"
+      - text: "它只能用于返回值，不能用于参数"
+      - text: "它在运行时会强制把所有值转成任意类型"
+    answer: [0]
+    explain: "Any 是类型系统的逃生舱：任何与 Any 运算的结果都变成 Any，检查工具不再检查，bug 会延迟到运行时才暴露。应尽量用 object / Union / 具体类型替代。"
+    tags: [类型注解, Any, 易错]
+    difficulty: 3
+
+  - qid: py-16-017
+    type: multiple
+    stem: "关于函数默认值与类型注解，正确的是？"
+    options:
+      - text: "不要用可变对象（list/dict）作默认参数，这是经典坑；可用 Optional[T] = None 后在体内初始化"
+      - text: "想表达「默认空列表」，dataclass 里可用 field(default_factory=list)"
+      - text: "标注 x: list[int] = [] 在运行期是安全的写法"
+      - text: "x: list[int] = [] 虽然能跑，但所有调用共享同一个默认列表，是隐患"
+    answer: [0, 1, 3]
+    explain: "函数默认参数在定义时求值，可变默认值被所有调用共享，是经典 bug。正确做法是用 None 哨兵或 field(default_factory=list)。选项 3 说「安全」是错的。"
+    tags: [类型注解, 易错, 默认参数]
+    difficulty: 3
+
+  - qid: py-16-018
+    type: code
+    stem: "两个模块互相引用类型时，用 TYPE_CHECKING 守卫，只在类型检查阶段导入。"
+    template: |
+      from typing import {{blank}}
+
+      if TYPE_CHECKING:
+          from models import User
+
+      def handler(u: User) -> None: ...
+    blanks: ["TYPE_CHECKING"]
+    explain: "TYPE_CHECKING 在运行时为 False，因此不会真正导入 models，避免循环 import；仅在静态检查阶段为 True。配合 from __future__ import annotations 可让注解延迟求值为字符串。"
+    tags: [类型注解, TYPE_CHECKING]
+    difficulty: 3
+
+  - qid: py-16-019
+    type: single
+    stem: "关于 `@dataclass`，主要作用是？"
+    options:
+      - text: "根据类属性注解自动生成 __init__ / __repr__ / __eq__ 等方法"
+      - text: "把普通函数变成协程"
+      - text: "给字典加字段类型校验"
+      - text: "让类成为类型变量"
+    answer: [0]
+    explain: "@dataclass（标准库 dataclasses）读取类变量注解，自动生成常见特殊方法，减少样板代码。它不同于 TypedDict（针对 dict），也不同于 pydantic（运行时校验）。"
+    tags: [类型注解, dataclass]
+    difficulty: 2
+
+  - qid: py-16-020
+    type: multiple
+    stem: "关于 pydantic 与标准库类型注解的关系，正确的是？"
+    options:
+      - text: "标准库注解 + mypy 在「写代码/提交前」发现类型错误"
+      - text: "pydantic 的 BaseModel 在「运行时」校验外部输入（如 JSON 字段），类型不符抛清晰错误"
+      - text: "两者冲突，只能二选一"
+      - text: "FastAPI 正是用 pydantic 做请求体校验"
+    answer: [0, 1, 3]
+    explain: "二者不冲突、分工互补：内部用注解拿 IDE 补全与 mypy 门禁，边界（API 入参）用 pydantic 做运行期校验，这是 FastAPI 的核心设计哲学。选项 2 错在说冲突。"
+    tags: [类型注解, pydantic, 工具链]
+    difficulty: 3

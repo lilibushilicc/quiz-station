@@ -112,3 +112,171 @@ questions:
     explain: "@ 语法在定义时立即生效，所以注册路由、插件表这类副作用在 import 阶段就完成了，不需要显式调用注册函数。"
     tags: [装饰器, 易错]
     difficulty: 3
+
+  - qid: py-13-009
+    type: single
+    stem: "在闭包中想在内层函数里修改外层函数的变量（如计数），直接 `count += 1` 会抛什么错？正确的做法是？"
+    options:
+      - text: 必须用 global 声明
+      - text: 必须用 nonlocal 声明，否则会被当作新建局部变量而抛 UnboundLocalError
+      - text: 直接赋值即可，不需要任何关键字
+      - text: 必须用 static 声明
+    answer: [1]
+    explain: "Python 的作用域规则：函数内一旦对某名字赋值，它就被当作局部变量，整个函数体内不再去外层找。用 nonlocal 声明『名字来自外层函数作用域』才能修改它；只读不需要，赋值才需要。"
+    tags: [闭包, 易错]
+    difficulty: 2
+
+  - qid: py-13-010
+    type: code
+    stem: "补全一个闭包计数器：内层递增被外层捕获的 count（注意要声明 nonlocal）。"
+    template: |
+      def make_counter():
+          count = 0
+
+          def inc(step=1):
+              {{blank}}
+              count += step
+              return count
+
+          return inc
+    blanks: ["nonlocal count"]
+    explain: "闭包里修改外层变量必须用 nonlocal 声明，否则 count += 1 会触发 UnboundLocalError。只读访问则不需要 nonlocal。"
+    tags: [闭包]
+    difficulty: 2
+
+  - qid: py-13-011
+    type: single
+    stem: "Python 闭包捕获外层变量（如循环变量 i）时，与 Java lambda 的『按值捕获』不同，Python 是？"
+    options:
+      - text: 按值捕获（复制一份）
+      - text: 按引用捕获（共享同一个变量，循环结束后读到的是最终值）
+      - text: 不捕获任何变量
+      - text: 只在函数被调用瞬间复制一份
+    answer: [1]
+    explain: "Python 闭包按引用捕获，所以循环变量陷阱里三个 lambda 读到的都是 i 的最终值（全是 2）。Java 强制变量『事实上 final』，编译器直接拒绝对会变化的变量做捕获。"
+    tags: [闭包, 易错]
+    difficulty: 3
+
+  - qid: py-13-012
+    type: single
+    stem: "加了 @functools.wraps(fn) 之后，被装饰函数会多出一个指向原函数的属性，它叫什么？"
+    options:
+      - text: "__wrapped__"
+      - text: "__original__"
+      - text: "__func__"
+      - text: "__closure__"
+    answer: [0]
+    explain: "wraps 把原函数的 __name__、__doc__、__module__、__annotations__ 等复制过来，并额外设置 __wrapped__ 指向原函数，因此 inspect.signature 能拿到真实签名。测试想跳过装饰器可用 func.__wrapped__。"
+    tags: [装饰器]
+    difficulty: 2
+
+  - qid: py-13-013
+    type: multiple
+    stem: "关于 functools.lru_cache，正确的使用前提是？（多选）"
+    options:
+      - text: 被缓存函数的参数必须可哈希（list/dict/set 不行，要转 tuple/frozenset）
+      - text: 函数应当是纯函数，有副作用或返回值随时间变化不能缓存
+      - text: 缓存不会自动过期，没有 TTL（需要过期用 cachetools.TTLCache 或 Redis）
+      - text: 给方法加 lru_cache 非常安全，绝不会造成内存泄漏
+    answer: [0, 1, 2]
+    explain: "前三项都是硬性前提。第四项错误：给方法加 lru_cache 时 self 也是缓存 key 的一部分，会导致实例被长期引用、无法回收（内存泄漏），需谨慎控制容量或手动失效。"
+    tags: [装饰器, 易错]
+    difficulty: 3
+
+  - qid: py-13-014
+    type: single
+    stem: "用『类』实现装饰器时，关键要让这个类实例变得可调用，需要定义哪个方法？"
+    options:
+      - text: "__call__"
+      - text: "__init__"
+      - text: "__decorate__"
+      - text: "__apply__"
+    answer: [0]
+    explain: "实现了 __call__ 的类实例就是可调用的，@MyDecorator 等价于 f = MyDecorator(f)，__call__ 里执行包装逻辑。需要保存状态（调用计数、缓存、限流）时，类比函数装饰器更直观，还能暴露额外方法。"
+    tags: [装饰器, 类装饰器]
+    difficulty: 2
+
+  - qid: py-13-015
+    type: single
+    stem: "在类里给方法同时加 @classmethod 和自定义装饰器（如 @log_call），正确写法是？"
+    options:
+      - text: "@log_call 写在 @classmethod 上面"
+      - text: "@classmethod 必须写在最外层（最上面），否则 log_call 拿到的是 classmethod 对象而非函数"
+      - text: 两者顺序无所谓
+      - text: 不能同时给一个方法叠加 @classmethod 和自定义装饰器
+    answer: [1]
+    explain: "classmethod 必须放在最外层，因为它返回的是 classmethod 对象；如果自定义装饰器在更外层，会拿到这个对象而不是普通函数，导致出错。同类的还有 @staticmethod。"
+    tags: [装饰器, 易错]
+    difficulty: 3
+
+  - qid: py-13-016
+    type: single
+    stem: "带参数的装饰器 @retry(times=3)，即使全部使用默认值，能否写成 `@retry`（不带括号）？"
+    options:
+      - text: 可以，@retry 和 @retry() 完全等价
+      - text: 不可以，必须写成 @retry()，否则被装饰的函数会被当成第一层的 times 参数
+      - text: 只能在 Python 3.9+ 之后省略括号
+      - text: 写成 @retry 会直接报语法错误
+    answer: [1]
+    explain: "带参装饰器第一层接收的是装饰器参数；不写括号时下面的 def 语句（函数对象）会直接被当作第一层参数，逻辑完全错乱。想两种写法都支持，需要用 func=None 判断的 smart 写法。"
+    tags: [装饰器, 易错]
+    difficulty: 2
+
+  - qid: py-13-017
+    type: single
+    stem: "在装饰器里捕获异常用于记录日志，但 except 块里没有重新 raise，这会导致？"
+    options:
+      - text: 程序立刻崩溃
+      - text: 调用方拿到 None，还以为函数成功执行了（极难排查的隐蔽 bug）
+      - text: 装饰器直接失效
+      - text: 触发编译期错误
+    answer: [1]
+    explain: "装饰器的职责是『增强』而不是『改写语义』。只记日志不抛出，调用方会拿到 None、拿不到异常。正确做法是在 except 块最后写 raise 原样抛出。"
+    tags: [装饰器, 易错]
+    difficulty: 3
+
+  - qid: py-13-018
+    type: multiple
+    stem: "关于 @functools.cached_property，正确的是？（多选）"
+    options:
+      - text: 只在第一次访问时计算，之后把结果写进实例字典
+      - text: 与 @property 的区别是 @property 每次访问都会重新执行
+      - text: 它和 __slots__ 不兼容（需要实例有 __dict__）
+      - text: 删除该实例属性后再次访问会重新计算
+    answer: [0, 1, 2, 3]
+    explain: "cached_property 缓存的是实例属性，只算一次；del obj.attr 删掉缓存后再次访问会重算。因为它要把结果写进 __dict__，所以和 __slots__ 冲突。"
+    tags: [装饰器, functools]
+    difficulty: 2
+
+  - qid: py-13-019
+    type: single
+    stem: "给类的方法加 @lru_cache 时，为什么容易造成内存泄漏？"
+    options:
+      - text: "lru_cache 本身有 bug"
+      - text: "self 也是缓存 key 的一部分，导致实例被缓存长期引用、无法被回收"
+      - text: "方法根本不能加缓存"
+      - text: "缓存会把整个类复制一份"
+    answer: [1]
+    explain: "缓存 key 包含所有参数，self 也被包含其中，于是实例被缓存引用住而无法释放。给方法加缓存要格外小心容量与失效，或改用实例级缓存（如 cached_property）。"
+    tags: [装饰器, 易错]
+    difficulty: 3
+
+  - qid: py-13-020
+    type: code
+    stem: "补全一个统计调用次数的类装饰器 CallCounter（用 functools.update_wrapper 代替 @wraps）。"
+    template: |
+      import functools
+
+      class CallCounter:
+          def __init__(self, func):
+              functools.update_wrapper(self, func)
+              self.func = func
+              self.count = 0
+
+          def {{blank}}(self, *args, **kwargs):
+              self.count += 1
+              return self.func(*args, **kwargs)
+    blanks: ["__call__"]
+    explain: "类装饰器在 __init__ 里接收被装饰函数，用 functools.update_wrapper 保留元信息，__call__ 实现包装逻辑。状态（count）直接挂在实例上，外部可读可重置。"
+    tags: [装饰器, 类装饰器]
+    difficulty: 2

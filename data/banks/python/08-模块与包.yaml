@@ -102,3 +102,182 @@ questions:
     explain: "sys.path 是一个普通列表，可以临时 append 自定义路径，但更规范的做法是用可编辑安装 pip install -e . 或设置 PYTHONPATH。"
     tags: [模块]
     difficulty: 2
+
+  - qid: py-08-009
+    type: single
+    stem: "模块中定义了 `def _internal_helper(): ...`，执行 `from module import *` 时会发生什么？"
+    options:
+      - text: "会导入 _internal_helper"
+      - text: "不会导入，import * 默认跳过下划线开头的名字"
+      - text: "会导入但自动改名"
+      - text: "直接报错"
+    answer: [1]
+    explain: "Python 没有 private 关键字，靠 `_` 前缀约定为内部使用。import * 跳过这类名字，但显式 `from module import _internal_helper` 仍能取到。"
+    tags: [模块, 约定]
+    difficulty: 2
+
+  - qid: py-08-010
+    type: single
+    stem: "模块里 `__all__ = ['circle_area']`，同时还有 `PI` 和 `debug_helper` 两个名字。`from m import *` 之后能否直接使用 `PI`？"
+    options:
+      - text: "能，__all__ 不影响 PI"
+      - text: "不能，PI 不在 __all__ 中，import * 不会导入它"
+      - text: "会报错"
+      - text: "取决于定义顺序"
+    answer: [1]
+    explain: "__all__ 只限制 import * 导出的范围；显式 `from m import PI` 仍可拿到。所以它既控制 * 范围，也充当公开 API 的文档。"
+    tags: [模块, __all__]
+    difficulty: 2
+
+  - qid: py-08-011
+    type: single
+    stem: "项目里有个文件命名为 `random.py`，主程序想 `import random` 使用标准库生成随机数，会发生什么？"
+    options:
+      - text: "正常导入标准库的 random"
+      - text: "导入的是自己的 random.py（当前目录优先级最高），可能导致 AttributeError"
+      - text: "报 ModuleNotFoundError"
+      - text: "报 SyntaxError"
+    answer: [1]
+    explain: "sys.path 中脚本所在目录排在最前，同名本地文件会遮住标准库。高危文件名还有 json.py、os.py、time.py、math.py 等。"
+    tags: [模块, 易错]
+    difficulty: 3
+
+  - qid: py-08-012
+    type: single
+    stem: "某模块含有 `from .models import User`，直接运行 `python shop/user/service.py` 会怎样？"
+    options:
+      - text: "正常运行"
+      - text: "报 ImportError: attempted relative import with no known parent package"
+      - text: "报 ModuleNotFoundError"
+      - text: "自动忽略相对导入"
+    answer: [1]
+    explain: "直接运行文件时 __name__ 是 '__main__'、__package__ 为空，没有『父包』作参照，相对导入就失效。要用 `python -m shop.user.service` 以模块方式运行。"
+    tags: [包, 易错]
+    difficulty: 3
+
+  - qid: py-08-013
+    type: single
+    stem: "在 Python 3 的 `shop/user/service.py` 里写 `import models`（想导入同目录的 models.py），会发生什么？"
+    options:
+      - text: "当作隐式相对导入，成功导入同目录的 models"
+      - text: "当作绝对导入去 sys.path 查找，通常找不到而报 ModuleNotFoundError"
+      - text: "正常导入，等价于 from . import models"
+      - text: "报 SyntaxError"
+    answer: [1]
+    explain: "Python 3 彻底移除了隐式相对导入，import models 只会被当作绝对导入。要导入同目录模块必须写 `from . import models`。"
+    tags: [包, 易错]
+    difficulty: 3
+
+  - qid: py-08-014
+    type: single
+    stem: "要让含有相对导入的 `shop.user.service` 模块正确运行，推荐方式是？"
+    options:
+      - text: "python shop/user/service.py"
+      - text: "在项目根目录用 python -m shop.user.service"
+      - text: "把文件重命名"
+      - text: "无法运行，必须删掉相对导入"
+    answer: [1]
+    explain: "`python -m 包.模块` 以模块方式运行，Python 知道它属于哪个包，相对导入就能正常工作。入口脚本通常放在项目根目录而非包内部。"
+    tags: [包]
+    difficulty: 2
+
+  - qid: py-08-015
+    type: single
+    stem: "发生循环导入时，写成 `import order`（只导入模块对象）往往比 `from order import f` 更容易成功，原因是？"
+    options:
+      - text: "import order 只需要 order 这个模块对象存在，不要求 f 此刻已经定义好"
+      - text: "import order 执行速度更快"
+      - text: "Python 3 已禁用 from ... import 语法"
+      - text: "两者没有区别"
+    answer: [0]
+    explain: "`from order import f` 要求 f 在导入那一刻已经存在；`import order` 只绑定模块对象，f 在调用时才去取，因此更容易躲过模块半初始化的问题。"
+    tags: [包, 易错]
+    difficulty: 3
+
+  - qid: py-08-016
+    type: single
+    stem: "先用 `from m import f` 导入，再执行 `importlib.reload(m)`，已拿到的 `f` 会怎样？"
+    options:
+      - text: "自动更新为模块里新的 f"
+      - text: "仍然是旧的 f，已导入到当前命名空间的名字不会刷新"
+      - text: "变成 None"
+      - text: "报 TypeError"
+    answer: [1]
+    explain: "reload 会重新执行模块，但已经导入到当前命名空间的 f 还是旧对象。reload 只适合交互式调试，生产改代码应重启进程。"
+    tags: [模块, 易错]
+    difficulty: 3
+
+  - qid: py-08-017
+    type: single
+    stem: "怀疑代码里 `import json` 导入的是自己的文件而非标准库，最该检查哪一项？"
+    options:
+      - text: "json.__name__"
+      - text: "json.__file__ 看实际加载的文件路径"
+      - text: "json.__doc__"
+      - text: "sys.modules"
+    answer: [1]
+    explain: "打印模块的 __file__ 能看到实际加载的源文件路径，是排查『导错模块』的万能命令。看清路径就能判断到底是标准库还是本地同名文件。"
+    tags: [模块, 排查]
+    difficulty: 2
+
+  - qid: py-08-018
+    type: single
+    stem: "Python 3.3+ 引入的『命名空间包』是指？"
+    options:
+      - text: "必须包含 __init__.py 的目录包"
+      - text: "没有 __init__.py 也能被导入的目录，常用于跨多个发行包合并同一命名空间"
+      - text: "单个 .py 模块文件"
+      - text: "给包起的别名"
+    answer: [1]
+    explain: "PEP 420 引入命名空间包，无 __init__.py 的目录也能导入，唯一真正用途是让分布在不同位置的目录合并成同一包（如插件体系）。普通项目仍应写 __init__.py。"
+    tags: [包]
+    difficulty: 3
+
+  - qid: py-08-019
+    type: single
+    stem: "PEP 8 对自己项目（应用代码）的导入方式建议是？"
+    options:
+      - text: "一律使用相对导入"
+      - text: "推荐使用绝对导入（从项目根目录写完整路径）"
+      - text: "都用 `from x import *`"
+      - text: "随意，没有建议"
+    answer: [1]
+    explain: "PEP 8 推荐应用代码用绝对导入，路径清晰、移动文件时报错明确。相对导入适合库/框架内部模块和 __init__.py 转发。"
+    tags: [import]
+    difficulty: 2
+
+  - qid: py-08-020
+    type: single
+    stem: "在包里放一个 `__main__.py` 文件，主要作用是？"
+    options:
+      - text: "让包支持 `python -m 包名` 直接运行"
+      - text: "作为必须的初始化文件"
+      - text: "替代 __init__.py"
+      - text: "用于存放单元测试"
+    answer: [0]
+    explain: "__main__.py 使包能像脚本一样用 python -m 运行，例如 python -m http.server、python -m pytest、python -m venv。"
+    tags: [包]
+    difficulty: 2
+
+  - qid: py-08-021
+    type: code
+    stem: "补全：从当前包的 models 模块导入 User（相对导入）。"
+    template: |
+      from {{blank}} import User
+    blanks: [".models"]
+    explain: "一个点代表当前包，from .models import User 导入同包内 models 模块的 User；两个点 .. 代表上级包。"
+    tags: [包, import]
+    difficulty: 2
+
+  - qid: py-08-022
+    type: single
+    stem: "关于导入别名，正确的是？"
+    options:
+      - text: "可以随便写 import numpy as numpy_lib 这种自创别名"
+      - text: "numpy 的社区约定别名是 np，不要自创"
+      - text: "as 只能配合 import 用，不能配合 from ... import"
+      - text: "起别名会改变模块的实际内容"
+    answer: [1]
+    explain: "np、pd、tf 是社区统一约定，自创别名会降低可读性。as 既可用于 `import m as x`，也可用于 `from m import f as g`。"
+    tags: [import]
+    difficulty: 2

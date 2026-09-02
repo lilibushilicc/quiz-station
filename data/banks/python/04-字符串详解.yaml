@@ -128,3 +128,185 @@ questions:
     explain: "驻留是 CPython 的内存优化，规则随版本变化。比较字符串内容一律用 ==，只有判断身份时才用 is。"
     tags: [intern, 易错]
     difficulty: 3
+
+  - qid: py-04-011
+    type: single
+    stem: "关于 `isdigit()`、`isdecimal()`、`isnumeric()` 三个数字判断方法，正确的是？"
+    options:
+      - text: "三者判断范围完全相同，可以互换使用"
+      - text: "存在包含关系：isdecimal ⊆ isdigit ⊆ isnumeric（如罗马数字 Ⅻ 能被 isnumeric 识别，却不在 isdecimal 内）"
+      - text: "isdigit 能识别小数点 '.' 和负号 '-'"
+      - text: "全角数字 '１２３' 的 isdigit() 返回 False"
+    answer: [1]
+    explain: "三者是逐级放宽的包含关系。isdigit 不认小数点和负号，还会把上标、全角数字当成数字，所以用它校验用户输入的数字是坑。"
+    tags: [方法, 易错]
+    difficulty: 3
+
+  - qid: py-04-012
+    type: single
+    stem: "执行 `print('text.txt'.strip('.txt'))`，输出是？"
+    options:
+      - text: "'text'"
+      - text: "'e'（strip 的参数是字符集合，不是子串，把 t/e/x/. 都啃掉了）"
+      - text: "'txt'"
+      - text: "'text.txt'"
+    answer: [1]
+    explain: "strip(chars) 的参数是『字符集合』，凡是在集合里的字符都从两端移除，直到遇到集合外的字符为止。想安全去后缀要用 removesuffix('.txt')（3.9+）。"
+    tags: [方法, 易错]
+    difficulty: 3
+
+  - qid: py-04-013
+    type: single
+    stem: "德语单词 'Straße' 做大小写不敏感比较，正确的是？"
+    options:
+      - text: "'STRASSE'.lower() == 'Straße'.lower() 为 True"
+      - text: "'STRASSE'.casefold() == 'Straße'.casefold() 为 True"
+      - text: "两者都为 False，必须用正则"
+      - text: "lower() 和 casefold() 结果完全一致"
+    answer: [1]
+    explain: "casefold() 比 lower() 更激进，会把德语 ß 转成 ss，因此大小写不敏感比较更严谨。纯英文场景 lower() 够用。"
+    tags: [方法]
+    difficulty: 2
+
+  - qid: py-04-014
+    type: single
+    stem: "执行 `print(\"it's a test\".title())`，输出是？"
+    options:
+      - text: "It's A Test"
+      - text: "It'S A Test（撇号后的字母也被当成一个单词开头大写了）"
+      - text: "It's a test"
+      - text: "ITS A TEST"
+    answer: [1]
+    explain: "title() 按『非字母→字母』的边界断词，撇号也算非字母，所以 s 后面那个 A 被大写了。想要正确的标题化要用 split() + capitalize()。"
+    tags: [方法, 易错]
+    difficulty: 2
+
+  - qid: py-04-015
+    type: single
+    stem: "关于字符串的 `split()`，正确的是？"
+    options:
+      - text: "split() 不传参时按单个空格切分"
+      - text: "split(' ') 按任意连续空白切分并自动忽略首尾空白"
+      - text: "split() 不传参时按任意空白切分，且不会产生空字符串"
+      - text: "split(' ') 和 split() 结果完全一致"
+    answer: [2]
+    explain: "不带参数时 split() 按任意连续空白切、忽略首尾空白、不产生空串；带参数时严格按该分隔符切，连续分隔符会产生空串。"
+    tags: [方法]
+    difficulty: 2
+
+  - qid: py-04-016
+    type: single
+    stem: "处理多平台换行文本 `'a\\r\\nb'`，正确的是？"
+    options:
+      - text: "split('\\n') 和 splitlines() 结果完全相同"
+      - text: "split('\\n') 更稳健，能识别所有换行符"
+      - text: "splitlines() 能正确识别 \\r\\n 和 \\r，而 split('\\n') 会把 \\r 留在元素里"
+      - text: "splitlines() 会丢失末尾空行"
+    answer: [2]
+    explain: "splitlines() 能正确处理 Windows(\\r\\n)、Unix(\\n)、老 Mac(\\r) 三种换行符；split('\\n') 会留下多余的 \\r。"
+    tags: [方法, 易错]
+    difficulty: 2
+
+  - qid: py-04-017
+    type: single
+    stem: "执行 `name = '  admin  '; print(f'{name!r}')`，输出是？"
+    options:
+      - text: "  admin  （和不加 !r 一样）"
+      - text: "'  admin  '（repr 形式，带引号，暴露隐藏空白）"
+      - text: "ADMIN"
+      - text: "admin"
+    answer: [1]
+    explain: "!r 会调用 repr() 而不是 str()，调试日志里用它一眼就能看出字符串两端有没有多余空白。"
+    tags: [格式化]
+    difficulty: 2
+
+  - qid: py-04-018
+    type: single
+    stem: "Python 3.8+ 执行 `x = 25; print(f'{x=}')`，输出是？"
+    options:
+      - text: "x=25（同时输出表达式文本和它的值，调试神器）"
+      - text: "25"
+      - text: "报错：= 不是合法语法"
+      - text: "x"
+    answer: [0]
+    explain: "f-string 的 = 调试语法会同时输出『表达式本身=值』，改了变量名也不用同步修改字符串。"
+    tags: [格式化]
+    difficulty: 2
+
+  - qid: py-04-019
+    type: single
+    stem: "已知 `point = (1, 2)`，执行 `\"坐标: %s\" % point` 会怎样？"
+    options:
+      - text: "正确输出 '坐标: (1, 2)'"
+      - text: "抛出 TypeError，必须写成 % (point,) 包一层元组"
+      - text: "输出 '坐标: 1'"
+      - text: "输出空字符串"
+    answer: [1]
+    explain: "% 格式化在占位符多于一个时要求右侧是元组；当 point 本身已是元组时，% point 会被误解成多个参数，需写成 %(point,) 包一层。"
+    tags: [格式化, 易错]
+    difficulty: 3
+
+  - qid: py-04-020
+    type: single
+    stem: "执行 `print('hello hello'.replace('l', 'L', 2))`，输出是？"
+    options:
+      - text: "hello hello"
+      - text: "heLLo hello（只替换前 2 个 'l'）"
+      - text: "heLLo heLLo"
+      - text: "heLo heLo"
+    answer: [1]
+    explain: "replace(old, new, count) 的第三个参数限制替换次数，从左到右数，只替换前 count 个匹配。"
+    tags: [方法]
+    difficulty: 2
+
+  - qid: py-04-021
+    type: single
+    stem: "执行 `key, sep, value = 'no_equal_sign'.partition('=')`，结果正确的是？"
+    options:
+      - text: "抛出 ValueError，因为字符串里没有 '='"
+      - text: "key='no_equal_sign', sep='=', value=''"
+      - text: "key='no_equal_sign', sep='', value=''（分隔符不存在也保证返回 3 个元素）"
+      - text: "返回单一字符串 'no_equal_sign'"
+    answer: [2]
+    explain: "partition(sep) 永远返回 (前, 分隔符, 后) 三元组；分隔符不存在时后两个是空串，所以解包永远安全，不像 split 可能 ValueError。"
+    tags: [方法]
+    difficulty: 2
+
+  - qid: py-04-022
+    type: single
+    stem: "判断文件名是否以多种后缀之一结尾，正确的是？"
+    options:
+      - text: "endswith 只能接受单个字符串，传元组会报错"
+      - text: "可以传元组，如 `fn.endswith(('.xls', '.xlsx', '.csv'))` 一次判断多个"
+      - text: "只能用于 startswith，endswith 不行"
+      - text: "元组会被当成一个整体后缀来比较"
+    answer: [1]
+    explain: "startswith / endswith 都接受元组，一次判断多个前缀/后缀，比写多个 or 更简洁。"
+    tags: [方法]
+    difficulty: 2
+
+  - qid: py-04-023
+    type: single
+    stem: "想校验用户输入能否转成数字，关于 `isdigit()` 的说法正确的是？"
+    options:
+      - text: "isdigit 能正确识别 '12.5' 和 '-5'"
+      - text: "isdigit 不认小数点和负号，还会把全角/上标当数字，校验数字应直接尝试 float() 转换（EAFP）"
+      - text: "isdigit 永远返回 False"
+      - text: "isdigit 只识别 ASCII 数字"
+    answer: [1]
+    explain: "isdigit 对 '12.5'、'-5' 都返回 False，却对 '²'、全角数字返回 True，int() 反而会报错。稳妥做法是 try float(s)。"
+    tags: [方法, 易错]
+    difficulty: 3
+
+  - qid: py-04-024
+    type: single
+    stem: "关于字符串切片与索引越界，正确的是？"
+    options:
+      - text: "切片越界和索引越界都会抛 IndexError"
+      - text: "'Python'[100] 返回空串"
+      - text: "切片越界不报错（返回原串或空串），只有单字符索引越界才抛 IndexError"
+      - text: "两者都返回空串"
+    answer: [2]
+    explain: "这是切片与索引最大的区别：'Python'[0:100] 自动截断返回原串，而 'Python'[100] 直接 IndexError。切片让代码更健壮。"
+    tags: [切片, 易错]
+    difficulty: 2

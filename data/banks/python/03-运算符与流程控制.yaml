@@ -127,3 +127,185 @@ questions:
     explain: "只要循环是被 break 结束的，else 分支就不执行。else 只在循环条件自然变为假（while）或迭代耗尽（for）时才执行。"
     tags: [流程控制, 易错]
     difficulty: 2
+
+  - qid: py-03-011
+    type: single
+    stem: "Python 中 `-7 % 3` 和 `7 % -3` 的结果分别是？"
+    options:
+      - text: "2 和 -2"
+      - text: "-1 和 1"
+      - text: "-1 和 -2"
+      - text: "2 和 1"
+    answer: [0]
+    explain: "Python 的 % 结果符号与除数相同：-7 % 3 == 2，7 % -3 == -2，恒等式 a == (a//b)*b + (a%b) 恒成立（如 -7 == (-3)*3 + 2）。Java 则符号与被除数相同（-7%3==-1）。移植负数算法时要特别小心。"
+    tags: [运算符, 易错]
+    difficulty: 3
+
+  - qid: py-03-012
+    type: single
+    stem: "表达式 `2 ** 3 ** 2` 的结果是？"
+    options:
+      - text: "512"
+      - text: "64"
+      - text: "18"
+      - text: "报错"
+    answer: [0]
+    explain: "** 是右结合的，2 ** 3 ** 2 等价于 2 ** (3 ** 2) = 2 ** 9 = 512，而不是 (2**3)**2 = 64。需要强调求值顺序时加括号最稳妥。"
+    tags: [运算符, 优先级]
+    difficulty: 2
+
+  - qid: py-03-013
+    type: single
+    stem: "表达式 `-2 ** 2` 的结果是？"
+    options:
+      - text: "-4"
+      - text: "4"
+      - text: "-2"
+      - text: "报错"
+    answer: [0]
+    explain: "** 优先级高于一元负号，所以 -2 ** 2 等于 -(2 ** 2) = -4。要算 (-2)**2 必须显式加括号得 4。"
+    tags: [运算符, 优先级, 易错]
+    difficulty: 2
+
+  - qid: py-03-014
+    type: single
+    stem: "`divmod(17, 5)` 的返回值是？"
+    options:
+      - text: "(3, 2)"
+      - text: "3.4"
+      - text: "3"
+      - text: "(5, 17)"
+    answer: [0]
+    explain: "divmod(a, b) 一次性返回 (商, 余数)，等价于 (a//b, a%b)。底层只做一次除法，比分别算两次快。常用于秒数转时分秒等『同时要商和余』的场景。"
+    tags: [运算符]
+    difficulty: 1
+
+  - qid: py-03-015
+    type: single
+    stem: "Python 中 `{1, 2, 3} - {2}` 和 `{'a': 1} | {'b': 2}` 的结果分别是？"
+    options:
+      - text: "{1, 3} 和 {'a': 1, 'b': 2}"
+      - text: "{1, 2, 3} 和 {'a': 1, 'b': 2}"
+      - text: "{3} 和 {'b': 2}"
+      - text: "报错"
+    answer: [0]
+    explain: "集合用 - 求差集、| 求并集。字典在 3.9+ 也支持 | 合并（后者覆盖前者同名键）。这些都是运算符重载的结果，让代码更自然。"
+    tags: [运算符, 容器]
+    difficulty: 2
+
+  - qid: py-03-016
+    type: single
+    stem: "`~5` 和 `~0` 的结果分别是？"
+    options:
+      - text: "-6 和 -1"
+      - text: "-5 和 0"
+      - text: "2 和 -1"
+      - text: "报错"
+    answer: [0]
+    explain: "按位取反在补码表示下满足 ~x == -(x+1)：~5 == -6，~0 == -1。Python 的 int 任意精度，没有固定位宽限制，因此结果和 Java 一致只是 Java 受位宽约束。"
+    tags: [位运算, 易错]
+    difficulty: 2
+
+  - qid: py-03-017
+    type: single
+    stem: "关于 Python 的移位运算符，下列说法正确的是？"
+    options:
+      - text: "只有 << 和 >>（算术右移），没有 Java 那样的 >>> 无符号右移"
+      - text: "有 <<、>> 和 >>> 三种"
+      - text: "左移 1 << 100 会像 Java 一样溢出取模"
+      - text: ">> 在 Python 里是无符号右移"
+    answer: [0]
+    explain: "Python 只有 << 和 >>，且 >> 是算术右移（保留符号位）。因为 int 任意精度、无位宽，『无符号右移』概念不成立。左移也永远不会溢出（不像 Java 的 1<<100 结果被位宽取模）。"
+    tags: [位运算]
+    difficulty: 2
+
+  - qid: py-03-018
+    type: single
+    stem: "`scores = {'张三': 90, '李四': 85}`，表达式 `'张三' in scores` 和 `90 in scores` 分别是？"
+    options:
+      - text: "True 和 False"
+      - text: "False 和 True"
+      - text: "True 和 True"
+      - text: "都报错"
+    answer: [0]
+    explain: "对字典用 in，默认检查的是键（key）不是值。'张三' in scores 是 True；90 是值，90 in scores 是 False，应写 90 in scores.values()。查键值对用 in scores.items()。"
+    tags: [成员运算, 易错]
+    difficulty: 2
+
+  - qid: py-03-019
+    type: single
+    stem: "下面这段代码执行后，i 的值是？\n```python\ni = 5\nprint(--i)\n```"
+    options:
+      - text: "5（--i 被解析为两个负号，等于 i）"
+      - text: "4"
+      - text: "6"
+      - text: "报错"
+    answer: [0]
+    explain: "Python 没有 ++/-- 自增自减运算符。--i 被解释成两次一元负号（-(-i)），结果还是 i，所以打印 5、i 不变。正确自增写 i += 1。这是 Java 转 Python 的高频踩坑。"
+    tags: [运算符, 易错]
+    difficulty: 2
+
+  - qid: py-03-020
+    type: single
+    stem: "执行以下代码会发生什么？\n```python\nt = (1, [2, 3])\ntry:\n    t[1] += [4]\nexcept TypeError:\n    pass\nprint(t)\n```"
+    options:
+      - text: "(1, [2, 3, 4])（列表被改了，但抛了 TypeError）"
+      - text: "(1, [2, 3])（没改，正常报错）"
+      - text: "报错且 t 不变"
+      - text: "(1, [2, 3, 4])（没报错）"
+    answer: [0]
+    explain: "t[1] += [4] 先执行 t[1].__iadd__([4]) 原地扩展列表（成功），再执行 t[1] = 结果 时被元组的不可变限制挡住而抛 TypeError。于是『改成功了但还是报错』。应改用 t[1].extend([4]) 只做原地修改、不触发赋值。"
+    tags: [运算符, 易错]
+    difficulty: 3
+
+  - qid: py-03-021
+    type: single
+    stem: "`flags = 0b0110; MASK = 0b0100`，表达式 `flags & MASK == MASK` 的结果是？"
+    options:
+      - text: "False（被解析成 flags & (MASK == MASK)）"
+      - text: "True"
+      - text: "报错"
+      - text: "0b0100"
+    answer: [0]
+    explain: "比较运算符优先级高于位运算，flags & MASK == MASK 被解析成 flags & (MASK == MASK) = flags & True = flags & 1，结果不是想要的。位运算和比较混用时必须加括号：(flags & MASK) == MASK。这是跨语言经典坑。"
+    tags: [运算符, 优先级, 易错]
+    difficulty: 3
+
+  - qid: py-03-022
+    type: single
+    stem: "想在循环体至少执行一次（类似 Java 的 do-while），Python 里通常怎么写？"
+    options:
+      - text: "while True: ...; if 条件: break"
+      - text: "do: ... while 条件"
+      - text: "repeat: ... until 条件"
+      - text: "loop: ... while 条件"
+    answer: [0]
+    explain: "Python 没有 do-while 语法。要『至少执行一次』用 while True 死循环，在合适位置用 if 条件: break 跳出。这是常见的轮询输入/轮询任务的写法。"
+    tags: [流程控制, 易错]
+    difficulty: 2
+
+  - qid: py-03-023
+    type: single
+    stem: "执行 `for i in range(3): pass` 之后（循环体没动过 i），`print(i)` 输出？"
+    options:
+      - text: "2"
+      - text: "报错 NameError"
+      - text: "0"
+      - text: "3"
+    answer: [0]
+    explain: "Python 的 for 循环变量在循环结束后依然存在，值是最后一次迭代的值（这里是 2）。这与 Java 不同（Java 的 for(int i...) 出了循环 i 就销毁）。注意不要和外部变量重名，以免被覆盖。"
+    tags: [流程控制, 易错]
+    difficulty: 2
+
+  - qid: py-03-024
+    type: single
+    stem: "`list(range(2, 6))` 和 `list(range(0, 10, 3))` 的结果分别是？"
+    options:
+      - text: "[2, 3, 4, 5] 和 [0, 3, 6, 9]"
+      - text: "[2, 3, 4, 5, 6] 和 [0, 3, 6, 9, 12]"
+      - text: "[2, 3, 4, 5] 和 [3, 6, 9]"
+      - text: "[3, 4, 5] 和 [0, 3, 6, 9]"
+    answer: [0]
+    explain: "range 遵循左闭右开：含 start、不含 stop。range(2,6) → 2,3,4,5；带步长 range(0,10,3) → 0,3,6,9。这让 len(range(a,b))==b-a、相邻区间无缝拼接、range(len(x)) 天然对应所有合法下标。"
+    tags: [流程控制, range]
+    difficulty: 1

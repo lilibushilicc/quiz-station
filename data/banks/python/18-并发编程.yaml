@@ -106,3 +106,162 @@ questions:
     explain: "用 with 获取锁可以在异常时也正常释放，比手写 acquire / finally release 更安全。RLock 允许同一线程重复获取，普通 Lock 会自我死锁。"
     tags: [线程安全]
     difficulty: 2
+
+  - qid: py-18-009
+    type: code
+    stem: "用 threading 启动一个调用 worker、参数 ('A', 2) 的线程。"
+    template: |
+      import threading
+
+      t = threading.Thread({{blank}}=worker, {{blank}}=("A", 2))
+      t.start()
+    blanks: ["target", "args"]
+    explain: "target 指定要执行的函数，args 必须是元组（即使只有一个参数也要写成 (x,)）。daemon=True 可设为守护线程。"
+    tags: [多线程, threading]
+    difficulty: 2
+
+  - qid: py-18-010
+    type: single
+    stem: "关于 threading.Thread，下列说法正确的是？"
+    options:
+      - text: "args 必须是元组；start() 启动线程，join() 阻塞等待它结束"
+      - text: "调用线程函数会立即执行，无需 start()"
+      - text: "args 可以是列表，效果一样"
+      - text: "join() 会杀死线程"
+    answer: [0]
+    explain: "Thread 必须用 start() 启动（真正创建 OS 线程），join() 阻塞当前线程直到目标线程结束。args 必须是元组。"
+    tags: [多线程, 易错]
+    difficulty: 2
+
+  - qid: py-18-011
+    type: multiple
+    stem: "关于 threading 的同步原语，匹配正确的是？"
+    options:
+      - text: "Lock：最基本的互斥锁，同一线程重复 acquire 会死锁"
+      - text: "RLock：可重入锁，同一线程可多次 acquire"
+      - text: "Semaphore(3)：最多允许 3 个线程同时进入临界区（限流）"
+      - text: "Event：通过 set()/wait() 在线程间发信号"
+    answer: [0, 1, 2, 3]
+    explain: "普通 Lock 不可重入（同一线程重复获取会死锁），RLock 可重入；Semaphore 控制并发数量；Event 用于线程间通知（wait 阻塞直到 set）。"
+    tags: [多线程, 线程安全]
+    difficulty: 3
+
+  - qid: py-18-012
+    type: code
+    stem: "提交多个任务，并按「谁先完成」的顺序处理 Future 结果。"
+    template: |
+      from concurrent.futures import ThreadPoolExecutor, as_completed
+
+      with ThreadPoolExecutor(max_workers=5) as pool:
+          futures = [pool.{{blank}}(fetch, u) for u in urls]
+          for fut in as_completed(futures):
+              result = fut.{{blank}}()
+    blanks: ["submit", "result"]
+    explain: "submit 返回 Future，as_completed 按完成顺序迭代；result() 取返回值（异常也在这里抛出）。map 则按输入顺序返回。"
+    tags: [线程池]
+    difficulty: 3
+
+  - qid: py-18-013
+    type: single
+    stem: "在 Windows 上写 multiprocessing，为什么必须把代码包在 `if __name__ == '__main__':` 里？"
+    options:
+      - text: "Windows 没有 fork，靠重新导入模块启动子进程，否则会无限递归 spawn"
+      - text: "否则 GIL 会失效"
+      - text: "否则 Python 无法编译"
+      - text: "这只是 Linux 上的要求，Windows 不需要"
+    answer: [0]
+    explain: "Windows 使用 spawn 启动子进程会重新导入主模块，若无 __main__ 保护，子进程又会执行顶层多进程代码，导致无限递归。Linux/macOS 用 fork 没这强制要求，但写上仍是好习惯。"
+    tags: [多进程, 易错]
+    difficulty: 3
+
+  - qid: py-18-014
+    type: multiple
+    stem: "关于 multiprocessing 的进程间通信，正确的是？"
+    options:
+      - text: "进程间不共享内存，变量彼此独立"
+      - text: "传递的对象会被 pickle 序列化"
+      - text: "可用 Queue / Pipe / shared_memory 交换数据"
+      - text: "可以像线程那样直接读写同一个全局变量"
+    answer: [0, 1, 2]
+    explain: "每个进程是独立解释器，内存不互通，要交换数据得走 Queue/Pipe/shared_memory 且会 pickle 序列化。直接共享全局变量是线程的做法，进程间不行。因此多进程适合「任务独立、各自返回结果」。"
+    tags: [多进程]
+    difficulty: 3
+
+  - qid: py-18-015
+    type: code
+    stem: "并发运行多个协程，等待它们全部完成。"
+    template: |
+      import asyncio
+
+      async def main():
+          await asyncio.{{blank}}(
+              fetch(a),
+              fetch(b),
+              fetch(c),
+          )
+    blanks: ["gather"]
+    explain: "asyncio.gather 把多个协程打包并发执行，总耗时约等于最慢的那个。注意 gather 接收的是协程对象（已调用但未被 await 的）。"
+    tags: [asyncio]
+    difficulty: 2
+
+  - qid: py-18-016
+    type: single
+    stem: "关于 `asyncio.run`，正确的是？"
+    options:
+      - text: "一个程序里通常只调用一次，用来启动事件循环"
+      - text: "可以在每个协程里都调用一次"
+      - text: "它返回协程对象，需要再 await"
+      - text: "没有它协程也能自动运行"
+    answer: [0]
+    explain: "asyncio.run(main()) 是 3.7+ 的标准入口，负责创建并销毁事件循环。一个程序通常只调一次；在协程内部应 await 子协程，而不是再 run。"
+    tags: [asyncio, 易错]
+    difficulty: 2
+
+  - qid: py-18-017
+    type: multiple
+    stem: "线程、进程、协程各自的「队列」分别是哪个？"
+    options:
+      - text: "线程间：queue.Queue（内置锁、可阻塞）"
+      - text: "进程间：multiprocessing.Queue"
+      - text: "协程间：asyncio.Queue"
+      - text: "协程间也可以用普通 queue.Queue 无需改"
+    answer: [0, 1, 2]
+    explain: "queue.Queue 用于线程（线程安全、自带锁）；multiprocessing.Queue 用于进程（跨进程）；asyncio.Queue 用于协程（await 友好的异步队列）。普通 queue.Queue 在 async 里会阻塞事件循环，不能用。"
+    tags: [队列, 并发模型]
+    difficulty: 3
+
+  - qid: py-18-018
+    type: single
+    stem: "关于 `queue.Queue` 的方法，说法错误的是？"
+    options:
+      - text: "put 在队列满时阻塞；get 在队列空时阻塞"
+      - text: "消费者处理完一项应调用 task_done()"
+      - text: "join() 会等所有项都被 task_done 标记完成"
+      - text: "deque（双端队列）是线程安全队列的正确替代"
+    answer: [3]
+    explain: "deque 不是线程安全的，不能替代 Queue。Queue 内部已加锁并支持阻塞等待，是生产者-消费者模式的正确选择。put/get 阻塞、task_done/join 配合是标准用法。"
+    tags: [队列, 易错]
+    difficulty: 3
+
+  - qid: py-18-019
+    type: code
+    stem: "给一个协程调用加上 5 秒超时保护。"
+    template: |
+      result = await asyncio.{{blank}}(fetch(url), timeout={{blank}})
+    blanks: ["wait_for", "5"]
+    explain: "asyncio.wait_for(coro, timeout=5) 在超时后取消协程并抛 TimeoutError。3.11+ 也可用 asyncio.TaskGroup 做结构化的任务组（任一子任务失败会取消其余）。"
+    tags: [asyncio, 超时]
+    difficulty: 3
+
+  - qid: py-18-020
+    type: single
+    stem: "关于 GIL，下列说法正确的是？"
+    options:
+      - text: "GIL 只锁 Python 字节码，不锁 C 扩展（如 NumPy 的部分运算），IO 等待时也会释放"
+      - text: "GIL 让多线程能真正并行执行 CPU 密集任务"
+      - text: "Python 3.14 默认已经完全移除 GIL"
+      - text: "去掉 GIL 后多线程就一定能变快，无需多进程"
+    answer: [0]
+    explain: "GIL 只锁 Python 字节码执行；C 扩展可在释放 GIL 下并行，IO 等待时也释放 GIL，所以 IO 密集多线程有效。3.14 的 free-threading（无 GIL）仍实验性，需用 --disable-gil 编译；子解释器（PEP 684）已稳定。"
+    tags: [GIL, 易错]
+    difficulty: 3
