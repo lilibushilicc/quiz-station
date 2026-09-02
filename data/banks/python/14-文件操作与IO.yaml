@@ -1,0 +1,112 @@
+meta:
+  id: py-14
+  title: 文件操作与 IO
+  source: 相关知识/Python/14-文件操作与IO.md
+  order: 14
+questions:
+  - qid: py-14-001
+    type: single
+    stem: "open() 使用模式 'w' 打开一个已存在的文件，会发生什么？"
+    options:
+      - text: 在原内容末尾追加
+      - text: 清空原内容，从头开始写
+      - text: 报错，因为文件已存在
+      - text: 以读写方式打开，保留原内容
+    answer: [1]
+    explain: "模式速记：r 读（不存在则报错）、w 写（存在则清空）、a 追加、x 新建（存在则报错）；加 b 变二进制，加 + 变读写。"
+    tags: [文件]
+    difficulty: 1
+
+  - qid: py-14-002
+    type: multiple
+    stem: "用 with 打开文件的好处有哪些？"
+    options:
+      - text: 离开代码块时自动关闭文件，无需手动 close()
+      - text: 中途抛异常也能保证资源被释放
+      - text: 代码更简洁，资源管理意图更明确
+      - text: 读写速度比手动 open 更快
+    answer: [0, 1, 2]
+    explain: "with 只负责资源生命周期，不影响 IO 速度。性能瓶颈通常在缓冲策略和读写次数上。"
+    tags: [文件]
+    difficulty: 2
+
+  - qid: py-14-003
+    type: single
+    stem: "在 Windows 上用默认编码读一个 UTF-8 文件报 UnicodeDecodeError，最可能的原因是？"
+    options:
+      - text: 文件损坏
+      - text: 默认编码不是 UTF-8（如 GBK），与文件实际编码不一致
+      - text: 文件太大
+      - text: 路径含中文
+    answer: [1]
+    explain: "务必显式写 encoding='utf-8'。跨平台脚本更是如此，否则行为随系统区域设置变化。"
+    tags: [编码, 易错]
+    difficulty: 2
+
+  - qid: py-14-004
+    type: code
+    stem: "把对象写成 JSON 文件（带 ensure_ascii=False），再从文件读回来。"
+    template: |
+      import json
+
+      with open("data.json", "w", encoding="utf-8") as f:
+          json.{{blank}}(obj, f, ensure_ascii=False)
+
+      with open("data.json", encoding="utf-8") as f:
+          obj = json.{{blank}}(f)
+    blanks: [dump, load]
+    explain: "带 s 的 dumps / loads 处理字符串，不带 s 的 dump / load 处理文件对象。ensure_ascii=False 让中文原样保存而不是 \\uXXXX。"
+    tags: [JSON, 易错]
+    difficulty: 2
+
+  - qid: py-14-005
+    type: code
+    stem: "用 pathlib 拼接路径并读取文本。"
+    template: |
+      from pathlib import Path
+
+      p = Path("data") {{blank}} "notes.txt"
+      text = p.read_text(encoding="utf-8")
+    blanks: ["/"]
+    explain: "Path 重载了 / 运算符做路径拼接，比 os.path.join 更直观。写项目路径时用 Path(__file__).parent 作为基准，避免依赖当前工作目录。"
+    tags: [pathlib]
+    difficulty: 2
+
+  - qid: py-14-006
+    type: multiple
+    stem: "关于文件读取方法，正确的是？"
+    options:
+      - text: "read() 一次读完整个文件到字符串"
+      - text: "readline() 读一行"
+      - text: "直接 for line in f 逐行迭代，内存最省"
+      - text: "readlines() 比直接迭代文件对象更省内存"
+    answer: [0, 1, 2]
+    explain: "readlines() 会一次性把所有行读进列表，大文件上很吃内存。逐行迭代文件对象是处理大文件的标准做法。"
+    tags: [文件, 性能]
+    difficulty: 2
+
+  - qid: py-14-007
+    type: single
+    stem: "关于 pickle，说法错误的是？"
+    options:
+      - text: 它能序列化几乎任意 Python 对象，包括自定义类实例
+      - text: 反序列化来自不可信来源的 pickle 数据是安全的
+      - text: 它是 Python 专用格式，跨语言不通
+      - text: 类定义变化后，旧数据可能无法反序列化
+    answer: [1]
+    explain: "pickle 在反序列化时会执行任意代码，只应用于可信数据。跨系统交换用 JSON，性能敏感场景考虑 msgpack。"
+    tags: [序列化, 安全]
+    difficulty: 3
+
+  - qid: py-14-008
+    type: code
+    stem: "用 csv 模块写一行数据，注意避免空行问题。"
+    template: |
+      import csv
+
+      with open("out.csv", "w", newline={{blank}}, encoding="utf-8") as f:
+          csv.writer(f).writerow(["a", "b"])
+    blanks: ["''"]
+    explain: "不写 newline='' 时，Windows 上每行之间会多出一个空行。读中文 CSV 时注意编码，Excel 导出的常是 GBK 或带 BOM 的 UTF-8。"
+    tags: [CSV, 易错]
+    difficulty: 3

@@ -1,0 +1,110 @@
+meta:
+  id: py-19
+  title: 常用第三方库与技术方向
+  source: 相关知识/Python/19-常用第三方库与技术方向.md
+  order: 19
+questions:
+  - qid: py-19-001
+    type: multiple
+    stem: "数据处理方向的主流库，用途匹配正确的是？"
+    options:
+      - text: "NumPy：多维数组与向量化数值计算"
+      - text: "pandas：表格数据（DataFrame）的清洗与分析"
+      - text: "Polars：用 Rust 实现的高性能 DataFrame 库"
+      - text: "Matplotlib：用来做数据清洗"
+    answer: [0, 1, 2]
+    explain: "Matplotlib 是绘图库。典型链路是 pandas 读数据与清洗，matplotlib / plotly 出图，数据量大时考虑 polars 或 duckdb。"
+    tags: [数据]
+    difficulty: 2
+
+  - qid: py-19-002
+    type: single
+    stem: "在 pandas 里挑选「列」最常用的写法是？"
+    options:
+      - text: "df[0]"
+      - text: "df['列名'] 或 df[['列1', '列2']]"
+      - text: "df.loc(列名)"
+      - text: "df.column_name"
+    answer: [1]
+    explain: "单列返回 Series，列表形式返回 DataFrame。按标签取行列用 loc，按位置用 iloc，条件过滤用布尔索引 df[df.age > 18]。"
+    tags: [pandas]
+    difficulty: 2
+
+  - qid: py-19-003
+    type: code
+    stem: "用 httpx 发一个带超时的 GET 请求并检查状态码。"
+    template: |
+      import httpx
+
+      r = httpx.{{blank}}(url, timeout=10)
+      r.{{blank}}()
+    blanks: [get, raise_for_status]
+    explain: "requests 更老牌、生态广；httpx 支持异步、API 更现代。无论如何都要设超时，否则请求可能永久挂住。"
+    tags: [网络]
+    difficulty: 2
+
+  - qid: py-19-004
+    type: multiple
+    stem: "关于 Web 框架，匹配正确的是？"
+    options:
+      - text: "Django：自带 ORM、后台和管理端的一体化框架"
+      - text: "Flask：轻量微框架，按需拼装扩展"
+      - text: "FastAPI：基于类型注解自动生成 OpenAPI 文档，原生支持异步"
+      - text: "FastAPI 因为自带 ORM，所以不适合搭配 SQLAlchemy"
+    answer: [0, 1, 2]
+    explain: "FastAPI 不绑定 ORM，常见搭配是 SQLAlchemy 2.0 + Alembic。选型看团队与场景：要快出后台用 Django，要灵活用 Flask，要异步 + 类型文档用 FastAPI。"
+    tags: [Web]
+    difficulty: 2
+
+  - qid: py-19-005
+    type: single
+    stem: "ORM 的核心价值是？"
+    options:
+      - text: 让 SQL 执行更快
+      - text: 用 Python 对象操作数据库，减少手写 SQL，但要留意生成的语句
+      - text: 自动优化表结构
+      - text: 完全不需要理解 SQL
+    answer: [1]
+    explain: "ORM 会带来 N+1 查询、隐式全表扫描等问题，复杂查询仍要写原生 SQL 或看生成的语句。SQLAlchemy Core 提供了更贴近 SQL 的写法。"
+    tags: [ORM]
+    difficulty: 3
+
+  - qid: py-19-006
+    type: code
+    stem: "用 pytest 写一个参数化的测试用例。"
+    template: |
+      import pytest
+
+      @pytest.mark.{{blank}}([(1, 1), (2, 2)])
+      def test_abs(a, expected):
+          assert abs(a) == expected
+    blanks: [parametrize]
+    explain: "parametrize 能一次生成多组用例。pytest 相比 unittest 无需样板类，assert 直接用，插件生态也最丰富。"
+    tags: [测试]
+    difficulty: 2
+
+  - qid: py-19-007
+    type: multiple
+    stem: "关于机器学习方向，匹配正确的是？"
+    options:
+      - text: "scikit-learn：传统机器学习算法与评估工具"
+      - text: "PyTorch：动态图深度学习框架，研究领域主流"
+      - text: "TensorFlow：工业部署生态成熟"
+      - text: "scikit-learn 主要用来训练大模型"
+    answer: [0, 1, 2]
+    explain: "scikit-learn 适合结构化数据的传统模型；深度学习用 PyTorch 或 TensorFlow；大模型生态常用 transformers + PEFT。"
+    tags: [AI]
+    difficulty: 2
+
+  - qid: py-19-008
+    type: single
+    stem: "关于任务队列（如 Celery），说法正确的是？"
+    options:
+      - text: 用来在 Web 请求之外异步执行耗时任务
+      - text: 可以让请求响应时间变短，但不影响任务本身耗时
+      - text: 需要一个消息中间件（如 Redis 或 RabbitMQ）传递任务
+      - text: 以上都正确
+    answer: [3]
+    explain: "典型场景：发邮件、生成报表、调第三方接口。要注意任务幂等、重试策略和结果后端的选择。"
+    tags: [任务队列]
+    difficulty: 3

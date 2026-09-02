@@ -1,0 +1,108 @@
+meta:
+  id: py-10
+  title: 面向对象基础
+  source: 相关知识/Python/10-面向对象基础.md
+  order: 10
+questions:
+  - qid: py-10-001
+    type: single
+    stem: "关于 self，说法正确的是？"
+    options:
+      - text: self 是关键字，不能改名
+      - text: self 只是约定俗成的名字，指向当前实例对象
+      - text: self 指向类本身
+      - text: 调用方法时不需要传 self，因为它由解释器自动置为 None
+    answer: [1]
+    explain: "obj.method(x) 等价于 Class.method(obj, x)，self 就是那个实例。换成别的名字语法上没问题，但强烈不建议。"
+    tags: [OOP]
+    difficulty: 2
+
+  - qid: py-10-002
+    type: single
+    stem: "类属性被实例「赋值」时，实际发生的是？"
+    options:
+      - text: 修改了类属性，所有实例都跟着变
+      - text: 在该实例上新建了一个同名实例属性，遮蔽类属性
+      - text: 报错，类属性只读
+      - text: 自动调用 setter
+    answer: [1]
+    explain: "读的时候先查实例再查类，写的时候只写实例。要改类属性必须用 Class.attr = ...。可变类属性（比如列表）被原地修改时会影响所有实例，这是常见陷阱。"
+    tags: [OOP, 易错]
+    difficulty: 3
+
+  - qid: py-10-003
+    type: code
+    stem: "定义一个类方法，第一个参数接收类而不是实例。"
+    template: |
+      class User:
+          @{{blank}}
+          def from_dict(cls, data):
+              return cls(**data)
+    blanks: [classmethod]
+    explain: "classmethod 常用于工厂方法；staticmethod 则完全不接收 self 或 cls，相当于放在类命名空间里的普通函数。"
+    tags: [OOP]
+    difficulty: 2
+
+  - qid: py-10-004
+    type: single
+    stem: "属性名写成 `__name`（双下划线开头）会怎样？"
+    options:
+      - text: 变成真正的私有属性，外部完全无法访问
+      - text: 会被名称改写为 _类名__name，只是约定层面的私有
+      - text: 只能在子类访问
+      - text: 自动变成只读属性
+    answer: [1]
+    explain: "Python 没有强制私有，双下划线触发 name mangling，写成 obj._ClassName__name 仍能访问。单下划线表示「内部使用」的约定，不做任何改写。"
+    tags: [OOP, 易错]
+    difficulty: 3
+
+  - qid: py-10-005
+    type: code
+    stem: "补全构造方法，在实例上保存传入的名字。"
+    template: |
+      class User:
+          def {{blank}}(self, name):
+              self.name = name
+    blanks: ["__init__"]
+    explain: "__init__ 负责初始化，对象本身由 __new__ 创建。返回值必须是 None，写 return 会抛 TypeError。"
+    tags: [OOP]
+    difficulty: 1
+
+  - qid: py-10-006
+    type: multiple
+    stem: "关于 @property，说法正确的是？"
+    options:
+      - text: 把方法伪装成属性，调用时不用加括号
+      - text: 可以在 setter 里做校验，同时保持 a.x = v 的写法
+      - text: 适合把「直接暴露字段」平滑升级为「带逻辑的访问」
+      - text: 加了 property 之后属性就真的变成只读、无法修改
+    answer: [0, 1, 2]
+    explain: "只定义 getter 而没有 setter 时才是只读（赋值抛 AttributeError）。property 是保持接口兼容的利器。"
+    tags: [OOP]
+    difficulty: 2
+
+  - qid: py-10-007
+    type: single
+    stem: "「鸭子类型」指的是？"
+    options:
+      - text: 必须显式继承某个基类才能被使用
+      - text: 只关心对象有没有对应的行为（方法），不关心它的具体类型
+      - text: 运行时会自动把对象转换成所需类型
+      - text: 一种专用于水禽类的设计模式
+    answer: [1]
+    explain: "「走起来像鸭子、叫起来像鸭子，那它就是鸭子」。Python 大量依赖此约定，比如只要实现 __len__ 就能用 len()。typing.Protocol 可以把这种约定显式化。"
+    tags: [OOP]
+    difficulty: 2
+
+  - qid: py-10-008
+    type: single
+    stem: "给类定义 __slots__ 的主要目的是？"
+    options:
+      - text: 让属性访问更快
+      - text: 禁止实例动态添加其他属性，并减少内存占用
+      - text: 自动实现 getter 和 setter
+      - text: 让类变成不可变
+    answer: [1]
+    explain: "__slots__ 去掉了每个实例的 __dict__，成百上千万个对象时能省下可观内存，副作用是不能再随意加属性。"
+    tags: [OOP, 性能]
+    difficulty: 3

@@ -1,0 +1,126 @@
+meta:
+  id: py-02
+  title: 变量与数据类型
+  source: 相关知识/Python/02-变量与数据类型.md
+  order: 2
+questions:
+  - qid: py-02-001
+    type: single
+    stem: "执行 `a = [1, 2]; b = a; a.append(3)` 之后，b 的值是？"
+    options:
+      - text: "[1, 2]"
+      - text: "[1, 2, 3]"
+      - text: 报错
+      - text: "[3]"
+    answer: [1]
+    explain: "赋值不是复制，而是把名字绑定到同一个对象上。a 和 b 指向同一个列表，通过其中一个做的原地修改在另一个上也可见。"
+    tags: [引用, 易错]
+    difficulty: 2
+
+  - qid: py-02-002
+    type: multiple
+    stem: "以下哪些是 Python 的不可变类型？"
+    options:
+      - text: "int"
+      - text: "str"
+      - text: "tuple"
+      - text: "list"
+      - text: "frozenset"
+      - text: "dict"
+    answer: [0, 1, 2, 4]
+    explain: "不可变：int、float、bool、str、tuple、frozenset、bytes。可变：list、dict、set、bytearray。注意 tuple 只是自身不可变，里面的列表仍然可以改。"
+    tags: [可变性]
+    difficulty: 2
+
+  - qid: py-02-003
+    type: single
+    stem: "表达式 `0.1 + 0.2 == 0.3` 的结果是？"
+    options:
+      - text: "True"
+      - text: "False"
+      - text: 有时 True 有时 False
+      - text: 报错
+    answer: [1]
+    explain: "二进制浮点无法精确表示 0.1，实际结果约为 0.30000000000000004。比较用 math.isclose(a, b)，金额计算用 Decimal 或按最小单位用整数。"
+    tags: [浮点数, 易错]
+    difficulty: 2
+
+  - qid: py-02-004
+    type: code
+    stem: "用 Decimal 精确计算 0.1 + 0.2。注意初始化方式。"
+    template: |
+      from decimal import Decimal
+      result = Decimal({{blank}}) + Decimal({{blank}})
+    blanks: ["'0.1'", "'0.2'"]
+    explain: "必须用字符串构造 Decimal。写成 Decimal(0.1) 会把浮点本身的误差一起带进去，得到 0.1000000000000000055511151231257827。"
+    tags: [浮点数, 易错]
+    difficulty: 3
+
+  - qid: py-02-005
+    type: single
+    stem: "关于 `is`，下面哪个表达式的结果通常是 False？"
+    options:
+      - text: "a = 256; b = 256; a is b"
+      - text: 在交互式环境分两行写 a = 257 和 b = 257，再算 a is b
+      - text: "a = None; a is None"
+      - text: "a = 'hello'; b = 'hello'; a is b"
+    answer: [1]
+    explain: "CPython 缓存 -5 到 256 的小整数，超出范围的字面量在交互式逐行执行时通常是不同对象；写在同一个 .py 文件或同一行里会被常量折叠优化。这些是实现细节，判断值相等一律用 ==，只有和 None 比较才用 is。"
+    tags: [is, 易错]
+    difficulty: 3
+
+  - qid: py-02-006
+    type: code
+    stem: "一行代码交换两个变量的值，不用中间变量。"
+    template: |
+      a, b = {{blank}}
+    blanks: ["b, a"]
+    explain: "右侧会先打包成元组，再依次解包绑定到左侧，所以不需要临时变量。"
+    tags: [解包]
+    difficulty: 1
+
+  - qid: py-02-007
+    type: single
+    stem: "判断变量 x 是否为 None，推荐的写法是？"
+    options:
+      - text: "x == None"
+      - text: "x is None"
+      - text: "not x"
+      - text: "x != 0"
+    answer: [1]
+    explain: "== 会调用 __eq__，可能被自定义对象改写；not x 会把 0、空字符串、空容器也当成「空」，语义不符。is 比较身份，与单例 None 比较最准确。"
+    tags: [None, 易错]
+    difficulty: 2
+
+  - qid: py-02-008
+    type: code
+    stem: "判断 x 是 int（含子类）实例，但要把 bool 排除掉。"
+    template: |
+      isinstance(x, {{blank}}) and not isinstance(x, {{blank}})
+    blanks: [int, bool]
+    explain: "bool 是 int 的子类，isinstance(True, int) 为 True。type(x) is int 只认精确类型，不做子类判断。"
+    tags: [类型判断, 易错]
+    difficulty: 3
+
+  - qid: py-02-009
+    type: single
+    stem: "「Python 是动态类型语言」指的是？"
+    options:
+      - text: 变量本身没有类型约束，同一个名字可以重新绑定到任意类型的对象
+      - text: 声明变量时必须写清类型
+      - text: 运行时完全不做类型检查
+      - text: 不同类型之间会自动转换
+    answer: [0]
+    explain: "类型属于对象而不属于变量，变量只是名字。运行时仍会做类型检查，不兼容的操作会抛 TypeError。"
+    tags: [类型系统]
+    difficulty: 2
+
+  - qid: py-02-010
+    type: code
+    stem: "用带星号的解包，把首尾元素单独取出、中间部分收成列表。"
+    template: |
+      first, *middle, last = {{blank}}
+    blanks: ["[1, 2, 3, 4, 5]"]
+    explain: "带星号的目标会把剩余元素收集成列表，整个结构中最多只能有一个星号。first 得到 1，middle 得到 [2, 3, 4]，last 得到 5。"
+    tags: [解包]
+    difficulty: 2

@@ -1,0 +1,104 @@
+meta:
+  id: py-12
+  title: 迭代器与生成器
+  source: 相关知识/Python/12-迭代器与生成器.md
+  order: 12
+questions:
+  - qid: py-12-001
+    type: single
+    stem: "可迭代对象（iterable）与迭代器（iterator）的关系是？"
+    options:
+      - text: 两者是同一个概念
+      - text: "可迭代对象实现 __iter__ 返回一个迭代器，迭代器还要实现 __next__"
+      - text: "迭代器一定不是可迭代对象"
+      - text: "列表是迭代器，不是可迭代对象"
+    answer: [1]
+    explain: "列表、字符串、字典是「可迭代对象」，能被 for 反复遍历；迭代器是一次性的，自身也实现 __iter__ 返回 self。用 iter(obj) 可以从前者拿到后者。"
+    tags: [迭代器, 易错]
+    difficulty: 3
+
+  - qid: py-12-002
+    type: code
+    stem: "把函数改成生成器，逐个产出结果而不是一次性返回列表。"
+    template: |
+      def read_lines(path):
+          for line in open(path):
+              {{blank}} line.rstrip()
+    blanks: [yield]
+    explain: "含 yield 的函数调用后返回生成器对象，代码体在每次 next() 时执行到下一个 yield 就暂停，因此能节省内存并支持流式处理。"
+    tags: [生成器]
+    difficulty: 2
+
+  - qid: py-12-003
+    type: multiple
+    stem: "使用生成器的好处有哪些？"
+    options:
+      - text: 惰性求值，不一次性占用大量内存
+      - text: 可以表示无限序列
+      - text: 能把读写逻辑流水线化，边生成边消费
+      - text: 生成器可以重复遍历多次
+    answer: [0, 1, 2]
+    explain: "生成器是一次性的，遍历完再遍历没有结果。需要重复用时要么重新调用生成函数，要么先转成列表。"
+    tags: [生成器, 易错]
+    difficulty: 2
+
+  - qid: py-12-004
+    type: code
+    stem: "用生成器表达式求 1 到 100 的平方和，不创建中间列表。"
+    template: |
+      total = {{blank}}(x * x for x in range(1, 101))
+    blanks: [sum]
+    explain: "生成器表达式用圆括号，sum、max、any、all 这类聚合函数可以直接消费，避免为中间结果分配内存。写成 [x*x for ...] 会先把列表建出来。"
+    tags: [生成器]
+    difficulty: 2
+
+  - qid: py-12-005
+    type: single
+    stem: "生成器只能遍历一次，遍历第二次会得到什么？"
+    options:
+      - text: 从头重新开始
+      - text: 什么都没有，立即 StopIteration
+      - text: 抛出 RuntimeError
+      - text: 返回 None
+    answer: [1]
+    explain: "生成器是有状态的游标，耗尽后就空了。想再遍历一次只能重新调用生成函数创建新生成器。"
+    tags: [生成器, 易错]
+    difficulty: 2
+
+  - qid: py-12-006
+    type: code
+    stem: "在生成器里把产出工作委托给另一个可迭代对象。"
+    template: |
+      def flat(nested):
+          for sub in nested:
+              {{blank}} sub
+    blanks: ["yield from"]
+    explain: "yield from 会把子生成器逐个产出，还能自动透传 send() 的返回值和异常，比手写 for + yield 更简洁正确。"
+    tags: [生成器]
+    difficulty: 3
+
+  - qid: py-12-007
+    type: multiple
+    stem: "关于 itertools 提供的工具，匹配正确的是？"
+    options:
+      - text: "chain 把多个可迭代对象首尾相接"
+      - text: "groupby 对相邻的相同元素分组（通常需要先排序）"
+      - text: "islice 对迭代器做切片，不占用额外内存"
+      - text: "count 生成一个有限的整数序列"
+    answer: [0, 1, 2]
+    explain: "count 是无限计数器，从起始值一直递增下去。groupby 只对连续的同组元素生效，所以几乎总是配合 sorted 使用。"
+    tags: [itertools]
+    difficulty: 3
+
+  - qid: py-12-008
+    type: single
+    stem: "调用 generator.send(value) 的作用是？"
+    options:
+      - text: 把 value 作为当前 yield 表达式的值，让生成器继续执行
+      - text: 给生成器发送异常
+      - text: 重新启动一个已经耗尽的生成器
+      - text: 设置生成器的返回值
+    answer: [0]
+    explain: "send 之前必须先 next() 或 send(None) 让生成器停在 yield 处；throw() 用来在暂停点注入异常，close() 用来提前终止。"
+    tags: [生成器]
+    difficulty: 3

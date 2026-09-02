@@ -1,0 +1,129 @@
+meta:
+  id: py-03
+  title: 运算符与流程控制
+  source: 相关知识/Python/03-运算符与流程控制.md
+  order: 3
+questions:
+  - qid: py-03-001
+    type: single
+    stem: "`1 == 1.0` 和 `1 is 1.0` 的结果分别是？"
+    options:
+      - text: "True 和 True"
+      - text: "True 和 False"
+      - text: "False 和 True"
+      - text: "False 和 False"
+    answer: [1]
+    explain: "`==` 比较值，`is` 比较对象身份。1 是 int、1.0 是 float，是两个不同的对象，所以 `1 == 1.0` 为 True 而 `1 is 1.0` 为 False。"
+    tags: [运算符, 易错]
+    difficulty: 2
+
+  - qid: py-03-002
+    type: single
+    stem: "`0 or 'a'` 和 `'' and 1` 的值分别是？"
+    options:
+      - text: "'a' 和 ''"
+      - text: "0 和 ''"
+      - text: "'a' 和 1"
+      - text: "True 和 False"
+    answer: [0]
+    explain: "and / or 返回的是操作数本身而非布尔值。or 返回第一个为真的操作数，全假则返回最后一个；and 返回第一个为假的操作数，全真则返回最后一个。"
+    tags: [运算符, 逻辑运算]
+    difficulty: 2
+
+  - qid: py-03-003
+    type: boolean
+    stem: "链式比较 `1 < 2 < 3` 等价于 `(1 < 2) and (2 < 3)`，且中间的 2 只会被求值一次。"
+    answer: [0]
+    explain: "Python 支持链式比较，`a < b < c` 等价于 `a < b and b < c`，但 `b` 只求值一次。因此 `1 < f() < 3` 中 f() 只调用一次。"
+    tags: [运算符, 比较]
+    difficulty: 2
+
+  - qid: py-03-004
+    type: single
+    stem: "表达式 `-7 // 2` 的结果是？"
+    options:
+      - text: "-3"
+      - text: "-4"
+      - text: "3"
+      - text: "-3.5"
+    answer: [1]
+    explain: "`//` 是向下取整（floor）而非截断。-7 / 2 = -3.5，向下取整为 -4。配套的 `-7 % 2` 结果为 1，余数与除数同号。"
+    tags: [运算符, 易错]
+    difficulty: 3
+
+  - qid: py-03-005
+    type: multiple
+    stem: "以下哪些值用在 if 判断中会被视为假？"
+    options:
+      - text: "0"
+      - text: "0.0"
+      - text: "[0]"
+      - text: "[]"
+      - text: "None"
+      - text: "' '"
+    answer: [0, 1, 3, 4]
+    explain: "为假的值包括 None、False、数值 0（0 / 0.0 / 0j）、空序列与空容器（''、[]、()、{}、set()、range(0)）。`[0]` 是非空列表、' ' 是非空字符串，二者都为真。"
+    tags: [真值测试, 易错]
+    difficulty: 2
+
+  - qid: py-03-006
+    type: single
+    stem: "表达式 `not 1 == 2` 的结果是？"
+    options:
+      - text: "True"
+      - text: "False"
+      - text: "报错"
+      - text: "1"
+    answer: [0]
+    explain: "比较运算符的优先级高于 not，所以先算 `1 == 2` 得 False，再 not False 得 True。写成 `not (1 == 2)` 更清晰。"
+    tags: [运算符, 优先级]
+    difficulty: 2
+
+  - qid: py-03-007
+    type: code
+    stem: "补全 while 循环，用海象运算符在条件里接收输入，输入 quit 时退出。"
+    template: |
+      while (cmd := input("> ")) {{blank}} "quit":
+          print("执行:", cmd)
+    blanks: ["!="]
+    explain: "海象运算符 `:=` 可以在表达式中完成赋值并返回该值，避免先写 `cmd = input()` 再判断的重复结构。"
+    tags: [海象运算符, 流程控制]
+    difficulty: 3
+
+  - qid: py-03-008
+    type: code
+    stem: "补全 for-else 结构：找到不合格项就中断，否则打印全部合格。"
+    template: |
+      for item in items:
+          if not check(item):
+              print("发现不合格:", item)
+              {{blank}}
+      {{blank}}
+          print("全部合格")
+    blanks: ["break", "else:"]
+    explain: "循环的 else 子句在未遇到 break 时执行。它是 for / while 的附属子句，不是 if 的 else。"
+    tags: [流程控制, 易错]
+    difficulty: 3
+
+  - qid: py-03-009
+    type: fill
+    stem: "按分数给出评价，及格线 60。"
+    template: |
+      result = {{blank}} if score >= 60 else {{blank}}
+    blanks: ["'及格'", "'不及格'"]
+    explain: "三元表达式写作 `A if 条件 else B`，条件为真取 A，为假取 B。注意顺序与 C 系语言的三目运算符相反。"
+    tags: [流程控制, 语法]
+    difficulty: 1
+
+  - qid: py-03-010
+    type: single
+    stem: "下面这段循环执行结束后，else 分支会不会执行？"
+    options:
+      - text: "会，因为循环正常结束"
+      - text: "不会，因为最后一次执行了 break"
+      - text: "不会，因为 else 只能配 if"
+      - text: "会，else 总会执行"
+    answer: [1]
+    explain: "只要循环是被 break 结束的，else 分支就不执行。else 只在循环条件自然变为假（while）或迭代耗尽（for）时才执行。"
+    tags: [流程控制, 易错]
+    difficulty: 2

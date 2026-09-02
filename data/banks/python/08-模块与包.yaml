@@ -1,0 +1,104 @@
+meta:
+  id: py-08
+  title: 模块与包
+  source: 相关知识/Python/08-模块与包.md
+  order: 8
+questions:
+  - qid: py-08-001
+    type: single
+    stem: "`if __name__ == '__main__':` 的作用是？"
+    options:
+      - text: 定义程序入口类
+      - text: 只有直接运行该文件时才执行其下的代码，被导入时不执行
+      - text: 声明模块的公开接口
+      - text: 让模块可以被导入
+    answer: [1]
+    explain: "直接运行时模块的 __name__ 是 '__main__'，被导入时是模块名。用它把「测试代码 / 命令行入口」和「可复用定义」隔开。"
+    tags: [模块]
+    difficulty: 2
+
+  - qid: py-08-002
+    type: multiple
+    stem: "关于 import 的写法，正确的是？"
+    options:
+      - text: "import os.path 后通过 os.path.join 使用"
+      - text: "from os import path 后直接用 path.join"
+      - text: "import numpy as np 给模块起别名"
+      - text: "from math import * 是推荐做法，简单省事"
+    answer: [0, 1, 2]
+    explain: "import * 会污染命名空间、掩盖同名定义，还会让静态检查工具失效，PEP 8 明确不推荐。只在交互式探索时偶尔用。"
+    tags: [import]
+    difficulty: 2
+
+  - qid: py-08-003
+    type: single
+    stem: "同一个模块在程序中被多次 import，会怎样？"
+    options:
+      - text: 每次都重新执行一遍模块代码
+      - text: 只在第一次导入时执行，结果缓存在 sys.modules 里
+      - text: 第二次开始会报错
+      - text: 取决于模块大小
+    answer: [1]
+    explain: "导入结果缓存在 sys.modules 字典中。开发时改了源码想立即生效，用 importlib.reload(mod) 或重启解释器。"
+    tags: [模块, 原理]
+    difficulty: 2
+
+  - qid: py-08-004
+    type: code
+    stem: "在包的子模块里导入同级的另一个模块（相对导入）。"
+    template: |
+      from {{blank}} import utils
+    blanks: ["."]
+    explain: "一个点表示当前包，两个点表示上级包。相对导入只能在包内使用，直接运行该模块会报 attempted relative import beyond top-level package。"
+    tags: [包, 易错]
+    difficulty: 3
+
+  - qid: py-08-005
+    type: single
+    stem: "两个模块互相 import 导致循环导入，最常见的症状是？"
+    options:
+      - text: 程序一定无法启动，报 ImportError
+      - text: 部分属性还没定义完就被访问，抛 AttributeError 或 ImportError
+      - text: 会自动合并成一个模块
+      - text: 没有任何影响
+    answer: [1]
+    explain: "常见解法：把导入放到函数内部延迟执行、抽离出第三方模块、或者改成在函数里 import。重构依赖关系才是根治办法。"
+    tags: [包, 易错]
+    difficulty: 3
+
+  - qid: py-08-006
+    type: multiple
+    stem: "关于 __init__.py，说法正确的是？"
+    options:
+      - text: 它的存在让目录被识别为常规包
+      - text: 可以在里面用 __all__ 声明 from package import * 时导出哪些名字
+      - text: 可以在里面做包级别的初始化，或聚合子模块的接口
+      - text: Python 3 完全不需要它，命名空间包也能工作，所以它毫无用处
+    answer: [0, 1, 2]
+    explain: "Python 3.3+ 的命名空间包确实不要求 __init__.py，但常规包仍然需要它，而且它是控制包公开接口和初始化逻辑的地方。"
+    tags: [包]
+    difficulty: 3
+
+  - qid: py-08-007
+    type: single
+    stem: "Python 查找模块的路径顺序是？"
+    options:
+      - text: 只查当前目录
+      - text: 先查已加载的 sys.modules，再查内置模块，然后依次遍历 sys.path
+      - text: 先查 site-packages，再查标准库
+      - text: 随机顺序
+    answer: [1]
+    explain: "sys.path 依次包含脚本所在目录、PYTHONPATH、标准库、site-packages。遇到 ImportError 时打印 sys.path 是最快的排查手段。"
+    tags: [模块, 原理]
+    difficulty: 3
+
+  - qid: py-08-008
+    type: code
+    stem: "查看模块的搜索路径列表。"
+    template: |
+      import sys
+      print(sys.{{blank}})
+    blanks: [path]
+    explain: "sys.path 是一个普通列表，可以临时 append 自定义路径，但更规范的做法是用可编辑安装 pip install -e . 或设置 PYTHONPATH。"
+    tags: [模块]
+    difficulty: 2

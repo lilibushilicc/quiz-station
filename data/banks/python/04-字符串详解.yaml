@@ -1,0 +1,130 @@
+meta:
+  id: py-04
+  title: 字符串详解
+  source: 相关知识/Python/04-字符串详解.md
+  order: 4
+questions:
+  - qid: py-04-001
+    type: single
+    stem: "执行 `s = 'hello'; s[0] = 'H'` 会发生什么？"
+    options:
+      - text: 字符串被改成 Hello
+      - text: "抛出 TypeError"
+      - text: "抛出 IndexError"
+      - text: 静默失败，字符串不变
+    answer: [1]
+    explain: "字符串是不可变序列，不支持按位置赋值。要改内容只能新建字符串，比如 'H' + s[1:]。"
+    tags: [不可变]
+    difficulty: 1
+
+  - qid: py-04-002
+    type: single
+    stem: "'abcdef'[1:4:2] 的结果是？"
+    options:
+      - text: "bcd"
+      - text: "bd"
+      - text: "bce"
+      - text: "ce"
+    answer: [1]
+    explain: "切片 [start:stop:step]，取索引 1 到 4（不含 4），步长 2，即索引 1 和 3，得到 'b' 和 'd'。"
+    tags: [切片]
+    difficulty: 2
+
+  - qid: py-04-003
+    type: single
+    stem: "下面哪种方式能最快地写出「反转字符串」？"
+    options:
+      - text: "s.reverse()"
+      - text: "s[::-1]"
+      - text: "reversed(s)"
+      - text: "s.sort(reverse=True)"
+    answer: [1]
+    explain: "字符串没有 reverse 和 sort 方法；reversed(s) 返回的是迭代器，要 ''.join(reversed(s)) 才是字符串。s[::-1] 一步到位。"
+    tags: [切片, 易错]
+    difficulty: 2
+
+  - qid: py-04-004
+    type: multiple
+    stem: "关于字符串方法，说法正确的是？"
+    options:
+      - text: "strip() 默认去掉两端空白，返回新字符串"
+      - text: "replace() 可以替换子串，原字符串不受影响"
+      - text: "split() 不传参数时按任意空白切分"
+      - text: "sort() 可以就地把字符串排好序"
+    answer: [0, 1, 2]
+    explain: "字符串没有 sort()。所有「修改」类方法都返回新字符串，因为字符串不可变，必须重新赋值才能保留结果。"
+    tags: [方法]
+    difficulty: 2
+
+  - qid: py-04-005
+    type: code
+    stem: "用短横线把列表里的三段文字拼成一个字符串。"
+    template: |
+      result = {{blank}}.join(["a", "b", "c"])
+    blanks: ["'-'"]
+    explain: "join 是「分隔符字符串」的方法，参数是被拼接的可迭代对象。循环里反复用 + 拼接会产生大量临时对象，数据量大时要用 join。"
+    tags: [拼接, 性能]
+    difficulty: 2
+
+  - qid: py-04-006
+    type: single
+    stem: "把浮点数 x 格式化成保留两位小数，f-string 的正确写法是？"
+    options:
+      - text: "f'{x:.2f}'"
+      - text: "f'{x:2f}'"
+      - text: "f'{x:.2}'"
+      - text: "f'{x:%.2f}'"
+    answer: [0]
+    explain: "格式说明符写在冒号后面，.2f 表示保留两位小数的定点数。f-string 里还可以直接写表达式，如 f'{x * 100:.1f}%'。"
+    tags: [格式化]
+    difficulty: 1
+
+  - qid: py-04-007
+    type: code
+    stem: "字符串与字节串互相转换，两边都要显式指定编码。"
+    template: |
+      data = "中文".{{blank}}("utf-8")
+      text = data.{{blank}}("utf-8")
+    blanks: [encode, decode]
+    explain: "str.encode() 得到 bytes，bytes.decode() 得到 str。绝大多数乱码都是因为两边用的编码不一致，建议显式写 utf-8 而不是依赖系统默认值。"
+    tags: [编码, 易错]
+    difficulty: 2
+
+  - qid: py-04-008
+    type: single
+    stem: "关于原始字符串 `r'C:\\new\\table'`，说法正确的是？"
+    options:
+      - text: "\\n 会被解释成换行符"
+      - text: 反斜杠原样保留，不做转义
+      - text: 会报错，因为字符串没有正确结束
+      - text: 反斜杠会被自动替换成正斜杠
+    answer: [1]
+    explain: "加前缀 r 后反斜杠失去转义能力，适合写 Windows 路径和正则表达式。注意原始字符串不能以奇数个反斜杠结尾。"
+    tags: [字符串, 易错]
+    difficulty: 2
+
+  - qid: py-04-009
+    type: multiple
+    stem: "关于子串查找，正确的是？"
+    options:
+      - text: "startswith() 用来判断前缀"
+      - text: "isdigit() 判断字符串是否全是数字字符"
+      - text: "'ab' in s 可以判断子串是否存在"
+      - text: "find() 找不到子串时会抛出 ValueError"
+    answer: [0, 1, 2]
+    explain: "find() 找不到返回 -1，index() 才抛 ValueError。判断存在与否直接用 in 最清晰。"
+    tags: [方法, 易错]
+    difficulty: 2
+
+  - qid: py-04-010
+    type: single
+    stem: "关于字符串驻留（intern），正确的说法是？"
+    options:
+      - text: Python 会把所有字符串都自动驻留
+      - text: 驻留是 CPython 的实现细节，只有满足条件的字符串才可能被复用，不要依赖它
+      - text: 语言规范强制要求所有实现必须驻留
+      - text: 只有用 == 比较过的字符串才会被驻留
+    answer: [1]
+    explain: "驻留是 CPython 的内存优化，规则随版本变化。比较字符串内容一律用 ==，只有判断身份时才用 is。"
+    tags: [intern, 易错]
+    difficulty: 3

@@ -1,0 +1,119 @@
+meta:
+  id: py-21
+  title: FastAPI 框架实战
+  source: 相关知识/Python/21-FastAPI框架实战.md
+  order: 21
+questions:
+  - qid: py-21-001
+    type: single
+    stem: "FastAPI 的「核心三件套」指的是？"
+    options:
+      - text: "Django + DRF + Celery"
+      - text: "Starlette（ASGI 底层）+ Pydantic（数据校验）+ Uvicorn（服务器）"
+      - text: "Flask + SQLAlchemy + Gunicorn"
+      - text: "Tornado + Marshmallow + Nginx"
+    answer: [1]
+    explain: "Starlette 负责路由与 ASGI，Pydantic 负责校验与序列化，Uvicorn 负责跑起来。FastAPI 本身是在它们之上的一层封装。"
+    tags: [FastAPI]
+    difficulty: 2
+
+  - qid: py-21-002
+    type: code
+    stem: "定义一个带路径参数的 GET 接口。"
+    template: |
+      from fastapi import FastAPI
+
+      app = FastAPI()
+
+      @app.{{blank}}("/users/{user_id}")
+      def get_user(user_id: int):
+          return {"id": user_id}
+    blanks: [get]
+    explain: "装饰器对应 HTTP 方法：@app.get / post / put / delete 等。函数参数名要和路径里 {} 中的名字一致。"
+    tags: [路由]
+    difficulty: 1
+
+  - qid: py-21-003
+    type: multiple
+    stem: "关于三类请求参数，匹配正确的是？"
+    options:
+      - text: 路径参数：写在 URL 里，函数参数与 {} 同名
+      - text: 查询参数：URL 里 ? 后面的部分，函数参数不在路径中出现即可
+      - text: 请求体：用 Pydantic 模型声明，数据来自 JSON body
+      - text: 查询参数必须用 Query(...) 显式声明，否则拿不到
+    answer: [0, 1, 2]
+    explain: "查询参数默认自动识别，Query 只是用来加校验和文档说明。带默认值的参数自动变成可选。"
+    tags: [参数]
+    difficulty: 2
+
+  - qid: py-21-004
+    type: code
+    stem: "用 Pydantic 模型声明请求体，并给字段加校验约束。"
+    template: |
+      from pydantic import BaseModel, Field
+
+      class UserIn(BaseModel):
+          name: str = Field(min_length=1, max_length=20)
+          age: int = Field({{blank}}=0, {{blank}}=120)
+    blanks: [ge, le]
+    explain: "ge / le 是大于等于、小于等于；gt / lt 是严格大于、小于。校验失败时 FastAPI 自动返回 422 和详细的错误位置。"
+    tags: [Pydantic]
+    difficulty: 2
+
+  - qid: py-21-005
+    type: single
+    stem: "路由函数写成 async def 和 def，FastAPI 的处理差异是？"
+    options:
+      - text: 完全一样，只是写法不同
+      - text: "async def 在事件循环里直接运行；def 会被放到线程池执行，避免阻塞事件循环"
+      - text: "def 性能更好"
+      - text: "async def 会自动开多进程"
+    answer: [1]
+    explain: "同步函数（def）里可以放心用阻塞式数据库驱动，代价是占用线程池。async def 里一旦有阻塞调用，会拖垮整个事件循环。"
+    tags: [异步, 易错]
+    difficulty: 3
+
+  - qid: py-21-006
+    type: code
+    stem: "用依赖注入获取数据库会话，并在请求结束后关闭。"
+    template: |
+      def get_db():
+          db = SessionLocal()
+          try:
+              {{blank}} db
+          finally:
+              db.close()
+
+      @app.get("/items")
+      def list_items(db: Session = Depends({{blank}})):
+          return db.query(Item).all()
+    blanks: [yield, get_db]
+    explain: "带 yield 的依赖会在路由执行完后继续跑 yield 之后的代码，非常适合做资源的获取与释放。Depends 支持嵌套依赖和子依赖缓存。"
+    tags: [依赖注入]
+    difficulty: 3
+
+  - qid: py-21-007
+    type: multiple
+    stem: "关于 response_model，正确的是？"
+    options:
+      - text: 用来声明响应的结构与字段，过滤掉多余字段
+      - text: 会同步更新自动生成的 OpenAPI 文档
+      - text: 可以用它避免把密码哈希之类的敏感字段返回给前端
+      - text: 它会自动给响应数据加密
+    answer: [0, 1, 2]
+    explain: "典型做法是拆成 UserIn（含密码）和 UserOut（不含密码）两个模型，返回时指定 response_model=UserOut。"
+    tags: [响应]
+    difficulty: 2
+
+  - qid: py-21-008
+    type: single
+    stem: "本地启动 FastAPI 应用（带热重载）的命令是？"
+    options:
+      - text: "fastapi run main:app"
+      - text: "uvicorn main:app --reload"
+      - text: "python main.py"
+      - text: "gunicorn main:app"
+    answer: [1]
+    explain: "main 是模块名，app 是 FastAPI 实例名。生产环境用 uvicorn 多 worker 或 gunicorn + uvicorn.workers.UvicornWorker，前面再挂 Nginx。"
+    tags: [部署]
+    difficulty: 2

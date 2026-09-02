@@ -1,0 +1,90 @@
+meta:
+  id: py-17
+  title: 虚拟环境与包管理
+  source: 相关知识/Python/17-虚拟环境与包管理.md
+  order: 17
+questions:
+  - qid: py-17-001
+    type: code
+    stem: "用标准库创建一个虚拟环境。"
+    template: |
+      python -m {{blank}} .venv
+    blanks: [venv]
+    explain: "venv 是 Python 3.3+ 自带的标准库方案，无需额外安装。创建后需要在项目里激活它再装包。"
+    tags: [venv]
+    difficulty: 1
+
+  - qid: py-17-002
+    type: single
+    stem: "在 Windows 的 PowerShell 里激活 .venv，应该执行？"
+    options:
+      - text: "source .venv/bin/activate"
+      - text: ".venv\\Scripts\\Activate.ps1"
+      - text: "activate .venv"
+      - text: "python .venv activate"
+    answer: [1]
+    explain: "Windows 用 Scripts 目录（PowerShell 用 Activate.ps1，CMD 用 activate.bat），Linux / macOS 用 bin/activate。遇到执行策略限制时用 Set-ExecutionPolicy 放开。"
+    tags: [venv, 环境]
+    difficulty: 2
+
+  - qid: py-17-003
+    type: multiple
+    stem: "关于 requirements.txt，正确的是？"
+    options:
+      - text: "用 pip freeze > requirements.txt 导出当前环境的全部包"
+      - text: 建议写明版本约束，避免不同机器装出不同结果
+      - text: 它可以包含 -r other.txt 引用另一个文件
+      - text: 它会锁定依赖的依赖，等价于完整的锁文件
+    answer: [0, 1, 2]
+    explain: "pip freeze 导出的是顶层加传递依赖的快照，但没有哈希校验，也不区分开发依赖。真正的锁文件要看 uv / poetry / pip-tools 生成的 lock 文件。"
+    tags: [pip]
+    difficulty: 3
+
+  - qid: py-17-004
+    type: single
+    stem: "虚拟环境隔离依赖的核心机制是？"
+    options:
+      - text: 复制了一份独立的 Python 解释器
+      - text: 修改了 sys.path 与可执行文件查找路径，让包装到环境自己的目录里
+      - text: 用容器把进程隔离起来
+      - text: 在系统目录之外重新编译了标准库
+    answer: [1]
+    explain: "venv 目录里有 pyvenv.cfg 指向基础解释器，site-packages 是独立的。激活本质上就是改 PATH。"
+    tags: [venv, 原理]
+    difficulty: 3
+
+  - qid: py-17-005
+    type: code
+    stem: "从 requirements.txt 批量安装依赖。"
+    template: |
+      pip install {{blank}} requirements.txt
+    blanks: ["-r"]
+    explain: "常用组合：pip install -r requirements.txt、pip install -e .（可编辑安装当前项目）。"
+    tags: [pip]
+    difficulty: 1
+
+  - qid: py-17-006
+    type: multiple
+    stem: "关于现代包管理工具，匹配正确的是？"
+    options:
+      - text: "uv：用 Rust 写的极快安装器与解析器，兼容 pip 命令"
+      - text: "poetry：一体化管理依赖、打包与发布"
+      - text: "conda：跨语言环境，常用在数据科学场景"
+      - text: "pipenv：目前官方主推的唯一标准工具"
+    answer: [0, 1, 2]
+    explain: "官方标准仍是 pip + venv（PEP 668 之后推荐配合虚拟环境）。pipenv 已不再是主推方案，新项目更常见的是 uv 或 poetry。"
+    tags: [工具链]
+    difficulty: 3
+
+  - qid: py-17-007
+    type: single
+    stem: "关于把虚拟环境提交到 Git，正确的是？"
+    options:
+      - text: 应该提交，方便队友直接复用
+      - text: 不应提交，加入 .gitignore，只提交依赖清单让别人重建
+      - text: 只提交 Scripts 目录即可
+      - text: 提交压缩后的压缩包
+    answer: [1]
+    explain: "虚拟环境里有绝对路径和平台相关的可执行文件，换机器就失效，而且体积大。正确做法是提交 requirements.txt 或 lock 文件。"
+    tags: [venv, 反模式]
+    difficulty: 2

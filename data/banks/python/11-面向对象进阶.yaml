@@ -1,0 +1,110 @@
+meta:
+  id: py-11
+  title: 面向对象进阶
+  source: 相关知识/Python/11-面向对象进阶.md
+  order: 11
+questions:
+  - qid: py-11-001
+    type: single
+    stem: "关于 __str__ 和 __repr__，正确的是？"
+    options:
+      - text: 两者完全等价
+      - text: "__str__ 面向用户、追求可读；__repr__ 面向开发者、追求明确无歧义"
+      - text: "__repr__ 只在 print 时调用"
+      - text: 定义了 __str__ 就必须定义 __repr__
+    answer: [1]
+    explain: "print() 和 str() 优先用 __str__，交互环境和 repr() 用 __repr__。只定义 __repr__ 时它也会兜底承担 __str__ 的角色。"
+    tags: [魔法方法]
+    difficulty: 2
+
+  - qid: py-11-002
+    type: code
+    stem: "让自定义类支持 with 语句，补全两个魔法方法。"
+    template: |
+      class Conn:
+          def {{blank}}(self):
+              return self
+          def {{blank}}(self, exc_type, exc, tb):
+              self.close()
+    blanks: ["__enter__", "__exit__"]
+    explain: "__exit__ 返回 True 会吞掉异常，返回 None 则异常继续传播。简单场景用 contextlib.contextmanager 更省事。"
+    tags: [上下文管理器]
+    difficulty: 2
+
+  - qid: py-11-003
+    type: multiple
+    stem: "关于运算符重载，正确的是？"
+    options:
+      - text: "__add__ 对应 + 运算符"
+      - text: "__eq__ 对应 == 比较"
+      - text: "__len__ 让对象支持 len() 和布尔判断"
+      - text: "重载 __eq__ 后对象自动可哈希，可以直接做字典键"
+    answer: [0, 1, 2]
+    explain: "定义了 __eq__ 会把 __hash__ 置为 None，对象变得不可哈希。需要继续当键用就得同时定义 __hash__。"
+    tags: [魔法方法, 易错]
+    difficulty: 3
+
+  - qid: py-11-004
+    type: single
+    stem: "用 dataclass 自动生成 __init__ 且让实例不可变，写法是？"
+    options:
+      - text: "@dataclass(immutable=True)"
+      - text: "@dataclass(frozen=True)"
+      - text: "@dataclass(readonly=True)"
+      - text: "@dataclass 默认就不可变"
+    answer: [1]
+    explain: "frozen=True 会让字段变成只读，赋值抛 FrozenDataclassError，同时实例可哈希。dataclass 还能生成 __repr__、__eq__、__lt__（order=True）。"
+    tags: [dataclass]
+    difficulty: 2
+
+  - qid: py-11-005
+    type: code
+    stem: "用枚举定义一组状态码。"
+    template: |
+      from enum import Enum
+      class Status({{blank}}):
+          OK = 200
+          NOT_FOUND = 404
+    blanks: [Enum]
+    explain: "枚举成员是单例，比较用 is 或 == 都行。用 IntEnum 可以和整数直接比较，用 auto() 可以自动编号。"
+    tags: [enum]
+    difficulty: 1
+
+  - qid: py-11-006
+    type: multiple
+    stem: "关于抽象基类 abc，正确的是？"
+    options:
+      - text: 用 @abstractmethod 标记必须由子类实现的方法
+      - text: 含有抽象方法的类不能被直接实例化
+      - text: 子类没有实现全部抽象方法时，实例化会抛 TypeError
+      - text: 抽象基类是强制性的，绕过它的方法不存在
+    answer: [0, 1, 2]
+    explain: "抽象只是登记机制，并不阻止你用其他方式绕过。它主要用于建立接口契约，配合类型检查工具效果最好。"
+    tags: [abc]
+    difficulty: 3
+
+  - qid: py-11-007
+    type: single
+    stem: "描述符（descriptor）机制的核心是什么？"
+    options:
+      - text: 实现 __get__ / __set__ / __delete__ 的对象，托管另一个类的属性访问
+      - text: 一种自动生成文档的工具
+      - text: 类的 __doc__ 属性
+      - text: 用于描述函数签名的装饰器
+    answer: [0]
+    explain: "property、classmethod、staticmethod 本质上都是描述符。ORM 的字段定义、参数校验都大量依赖这个机制。"
+    tags: [描述符]
+    difficulty: 3
+
+  - qid: py-11-008
+    type: single
+    stem: "关于元类，最务实的说法是？"
+    options:
+      - text: 每个项目都应该自定义元类
+      - text: 元类是「类的类」，控制类的创建过程；日常开发几乎用不到，框架才需要
+      - text: 元类用来替代继承
+      - text: 元类可以提升运行速度
+    answer: [1]
+    explain: "绝大多数需求用装饰器、__init_subclass__ 或描述符就够了。type(name, bases, namespace) 可以动态创建类，这才是常见用法。"
+    tags: [元类]
+    difficulty: 3

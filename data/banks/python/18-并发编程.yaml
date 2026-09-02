@@ -1,0 +1,108 @@
+meta:
+  id: py-18
+  title: 并发编程
+  source: 相关知识/Python/18-并发编程.md
+  order: 18
+questions:
+  - qid: py-18-001
+    type: single
+    stem: "GIL（全局解释器锁）带来的直接影响是？"
+    options:
+      - text: 多线程完全无法并发
+      - text: 同一时刻只有一个线程执行 Python 字节码，CPU 密集型任务无法靠线程提速
+      - text: 多进程也会受限
+      - text: 网络请求无法并发
+    answer: [1]
+    explain: "IO 等待期间会释放 GIL，所以 IO 密集场景多线程依然有效。CPU 密集场景要换多进程，或者用释放 GIL 的 C 扩展（如 numpy）。"
+    tags: [GIL]
+    difficulty: 2
+
+  - qid: py-18-002
+    type: multiple
+    stem: "关于并发模型的选型，匹配正确的是？"
+    options:
+      - text: "IO 密集、并发量中等：多线程 threading 或线程池"
+      - text: "CPU 密集、需要多核：多进程 multiprocessing"
+      - text: "大量连接、等待时间长：asyncio 异步 IO"
+      - text: "CPU 密集且想省事：用多线程，效果一样"
+    answer: [0, 1, 2]
+    explain: "判断依据是瓶颈在哪儿：等 IO 还是烧 CPU。选错模型会让程序比串行还慢（线程切换与进程通信都有成本）。"
+    tags: [并发模型]
+    difficulty: 2
+
+  - qid: py-18-003
+    type: code
+    stem: "用线程池并发处理一批任务并收集结果。"
+    template: |
+      from concurrent.futures import ThreadPoolExecutor
+
+      with ThreadPoolExecutor(max_workers=8) as pool:
+          results = list(pool.{{blank}}(fetch, urls))
+    blanks: [map]
+    explain: "map 保持输入顺序返回结果，submit 返回 Future 更灵活（可配合 as_completed 按完成顺序取）。CPU 密集换成 ProcessPoolExecutor。"
+    tags: [线程池]
+    difficulty: 2
+
+  - qid: py-18-004
+    type: multiple
+    stem: "死锁产生的必要条件包括哪些？"
+    options:
+      - text: 互斥：资源一次只能被一个线程占用
+      - text: 占有且等待：拿着已有资源又去等别的
+      - text: 不可抢占：资源不能被强行收回
+      - text: 循环等待：多个线程首尾相接地等对方的资源
+    answer: [0, 1, 2, 3]
+    explain: "破坏任意一个条件即可避免死锁。最实用的做法是让所有线程按固定顺序获取锁，或者用带超时的 acquire(timeout=...)。"
+    tags: [死锁]
+    difficulty: 3
+
+  - qid: py-18-005
+    type: code
+    stem: "定义一个异步函数，并在里面等待另一个协程。"
+    template: |
+      {{blank}} def fetch(url):
+          data = {{blank}} session.get(url)
+          return data
+    blanks: [async, await]
+    explain: "async def 定义协程函数，await 挂起等待结果。协程只有在事件循环里运行才有意义，用 asyncio.run(main()) 启动。"
+    tags: [asyncio]
+    difficulty: 2
+
+  - qid: py-18-006
+    type: single
+    stem: "在 asyncio 里调用一个阻塞的同步函数（比如 time.sleep），会发生什么？"
+    options:
+      - text: 自动变成异步，不影响其他协程
+      - text: 会阻塞整个事件循环，所有协程都停下来等
+      - text: 被事件循环丢到后台线程执行
+      - text: 抛异常
+    answer: [1]
+    explain: "阻塞调用要放到线程里：await asyncio.to_thread(blocking_func)。用 time.sleep 而不是 asyncio.sleep 是新手最常见的性能杀手。"
+    tags: [asyncio, 易错]
+    difficulty: 3
+
+  - qid: py-18-007
+    type: single
+    stem: "多进程相比多线程的主要代价是？"
+    options:
+      - text: 无法利用多核
+      - text: 内存占用更高、进程间通信需要序列化，启动开销也更大
+      - text: 不能跑 Python 代码
+      - text: 必须手动管理 GIL
+    answer: [1]
+    explain: "每个进程有独立解释器和内存空间，真正绕开了 GIL，但数据传递要 pickle 序列化。共享状态用 Manager 或 Queue，代价都不低。"
+    tags: [多进程]
+    difficulty: 3
+
+  - qid: py-18-008
+    type: code
+    stem: "用锁保护共享计数器，确保一定会被释放。"
+    template: |
+      lock = threading.Lock()
+
+      {{blank}} lock:
+          counter += 1
+    blanks: [with]
+    explain: "用 with 获取锁可以在异常时也正常释放，比手写 acquire / finally release 更安全。RLock 允许同一线程重复获取，普通 Lock 会自我死锁。"
+    tags: [线程安全]
+    difficulty: 2

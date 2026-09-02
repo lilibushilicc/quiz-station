@@ -1,0 +1,128 @@
+meta:
+  id: py-05
+  title: 列表与元组
+  source: 相关知识/Python/05-列表与元组.md
+  order: 5
+questions:
+  - qid: py-05-001
+    type: single
+    stem: "执行 `a = [1]; a.append([2, 3])` 之后，a 是？"
+    options:
+      - text: "[1, 2, 3]"
+      - text: "[1, [2, 3]]"
+      - text: 报错
+      - text: "[1, 2]"
+    answer: [1]
+    explain: "append 把参数整体当成一个元素追加；extend 才把可迭代对象逐个展开。另外 append、extend、insert、sort、remove 全部返回 None，写 a = a.append(x) 会让 a 变成 None。"
+    tags: [列表, 易错]
+    difficulty: 2
+
+  - qid: py-05-002
+    type: multiple
+    stem: "下面哪些方式得到的是原列表的浅拷贝？"
+    options:
+      - text: "b = a"
+      - text: "b = a[:]"
+      - text: "b = list(a)"
+      - text: "b = a.copy()"
+      - text: "b = copy.deepcopy(a)"
+    answer: [1, 2, 3]
+    explain: "b = a 只是多了一个名字指向同一对象；切片、list()、copy() 都是浅拷贝，只复制一层，嵌套的可变元素仍然是共享的；deepcopy 才是深拷贝。"
+    tags: [拷贝, 易错]
+    difficulty: 2
+
+  - qid: py-05-003
+    type: single
+    stem: "执行 `m = [[0] * 3] * 3; m[0][0] = 1` 之后会发生什么？"
+    options:
+      - text: 只有第一个子列表变成 [1, 0, 0]
+      - text: 三个子列表的第一个元素全都变成 1
+      - text: 报错
+      - text: 没有任何变化
+    answer: [1]
+    explain: "乘法复制的是引用，三个子列表其实是同一个对象。正确写法是 [[0] * 3 for _ in range(3)]，每次循环都新建一个列表。"
+    tags: [列表, 易错]
+    difficulty: 3
+
+  - qid: py-05-004
+    type: code
+    stem: "用列表推导式生成 0 到 9 中偶数的平方。"
+    template: |
+      squares = [x * x {{blank}} x in range(10) {{blank}} x % 2 == 0]
+    blanks: ["for", "if"]
+    explain: "推导式顺序是 [表达式 for 变量 in 可迭代对象 if 条件]，if 部分可以省略。带两个 for 可以展开嵌套循环。"
+    tags: [推导式]
+    difficulty: 2
+
+  - qid: py-05-005
+    type: single
+    stem: "创建只含一个元素 1 的元组，正确写法是？"
+    options:
+      - text: "(1)"
+      - text: "(1,)"
+      - text: "tuple(1)"
+      - text: "[1,]"
+    answer: [1]
+    explain: "(1) 只是加了括号的整数 1，决定元组身份的是逗号。空元组写 ()，单元素元组必须带尾逗号。"
+    tags: [元组, 易错]
+    difficulty: 2
+
+  - qid: py-05-006
+    type: multiple
+    stem: "关于元组，说法正确的是？"
+    options:
+      - text: 元组自身不可变，但里面放的列表可以增删改
+      - text: 元素都可哈希时，元组可以作为字典的键
+      - text: 元组比列表更省内存，创建也更快
+      - text: 元组完全不能拼接，因为不可变
+    answer: [0, 1, 2]
+    explain: "元组可以用 + 和 * 拼接，只是得到的是新元组。不可变指的是「不能原地修改元素绑定」，不等于不能生成新元组。"
+    tags: [元组]
+    difficulty: 3
+
+  - qid: py-05-007
+    type: single
+    stem: "在 for 循环里边遍历边按索引删除列表元素，会发生什么？"
+    options:
+      - text: 正常运行，全部删干净
+      - text: 会漏删元素，甚至索引越界
+      - text: 自动重新计算索引，不会有问题
+      - text: "抛出 RuntimeError"
+    answer: [1]
+    explain: "删除会让后面的元素前移，迭代器却已经走到下一个位置，于是漏删。安全做法：遍历副本 for x in items[:]、倒序遍历，或者直接用列表推导式过滤。字典在遍历中改大小才会抛 RuntimeError。"
+    tags: [列表, 易错]
+    difficulty: 3
+
+  - qid: py-05-008
+    type: code
+    stem: "复制一个含嵌套结构的对象，要求改副本完全不影响原对象。"
+    template: |
+      import copy
+      b = copy.{{blank}}(a)
+    blanks: [deepcopy]
+    explain: "deepcopy 递归复制所有层级；浅拷贝只复制最外层，嵌套的可变对象仍然共享引用。"
+    tags: [拷贝]
+    difficulty: 2
+
+  - qid: py-05-009
+    type: single
+    stem: "对列表来说，下面哪个操作的时间复杂度是 O(1)？"
+    options:
+      - text: "按下标访问 a[i]"
+      - text: "在头部插入 a.insert(0, x)"
+      - text: "判断元素是否存在 x in a"
+      - text: "删除第一个匹配项 a.remove(x)"
+    answer: [0]
+    explain: "列表底层是动态数组，随机访问 O(1)；头部插入和删除要搬移元素是 O(n)，末尾追加是均摊 O(1)；查找是 O(n)。需要频繁头部操作时用 collections.deque。"
+    tags: [性能]
+    difficulty: 2
+
+  - qid: py-05-010
+    type: code
+    stem: "按每个元素的第 2 项从大到小排序。"
+    template: |
+      items.sort(key={{blank}}, reverse=True)
+    blanks: ["lambda x: x[1]"]
+    explain: "key 接收一个函数，对每个元素算出排序依据。sort 原地排序并返回 None，想要新列表用 sorted(items, ...)。"
+    tags: [排序]
+    difficulty: 2

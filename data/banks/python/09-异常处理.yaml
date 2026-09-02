@@ -1,0 +1,105 @@
+meta:
+  id: py-09
+  title: 异常处理
+  source: 相关知识/Python/09-异常处理.md
+  order: 9
+questions:
+  - qid: py-09-001
+    type: multiple
+    stem: "关于 try / except / else / finally，正确的是？"
+    options:
+      - text: "else 只在没有异常时执行"
+      - text: "finally 无论是否异常都会执行，常用于释放资源"
+      - text: "except 可以一次捕获多个异常类型，写成元组"
+      - text: "else 必须写在 except 之前"
+    answer: [0, 1, 2]
+    explain: "顺序固定为 try → except → else → finally。else 用来放「只有成功时才做」的逻辑，避免把无关代码塞进 try 块被误捕获。"
+    tags: [异常]
+    difficulty: 2
+
+  - qid: py-09-002
+    type: single
+    stem: "如果 try 和 finally 里都有 return 语句，最终返回哪个？"
+    options:
+      - text: try 里的
+      - text: finally 里的，它会覆盖前面的返回值
+      - text: 报错
+      - text: 两个值都返回
+    answer: [1]
+    explain: "finally 中的 return 会吞掉 try / except 中的返回值，而且连正在传播的异常也会被丢弃。这是典型的坑，finally 里不要写 return。"
+    tags: [异常, 易错]
+    difficulty: 3
+
+  - qid: py-09-003
+    type: code
+    stem: "捕获异常后抛出一个新异常，同时保留原始异常链。"
+    template: |
+      except ValueError as e:
+          raise ConfigError("配置错误") {{blank}} e
+    blanks: [from]
+    explain: "raise ... from e 会设置 __cause__，输出时显示「The above exception was the direct cause」。想隐藏原始上下文用 raise ... from None。"
+    tags: [异常]
+    difficulty: 3
+
+  - qid: py-09-004
+    type: multiple
+    stem: "关于自定义异常，说法正确的是？"
+    options:
+      - text: 通常继承 Exception 而不是 BaseException
+      - text: 可以按业务语义建异常基类，再派生具体子类
+      - text: 可以重写 __init__ 携带额外的错误码、上下文字段
+      - text: 自定义异常必须实现 __str__ 才能被打印
+    answer: [0, 1, 2]
+    explain: "继承 BaseException 会让 KeyboardInterrupt、SystemExit 一类的语义被混淆。Exception 默认就带有 __str__，不需要自己实现。"
+    tags: [异常]
+    difficulty: 2
+
+  - qid: py-09-005
+    type: single
+    stem: "下面哪种异常处理方式最不应该出现在生产代码里？"
+    options:
+      - text: "except ValueError: 只捕获明确的预期异常"
+      - text: "except Exception: pass 吞掉所有异常且不做任何处理"
+      - text: "except OSError as e: 记录日志后重新抛出"
+      - text: "finally: 关闭文件句柄"
+    answer: [1]
+    explain: "裸吞异常会让 bug 完全消失在日志里，排查成本极高。至少要 logging.exception 记录，或者捕获后包装成业务异常再抛。"
+    tags: [异常, 反模式]
+    difficulty: 2
+
+  - qid: py-09-006
+    type: code
+    stem: "用上下文管理器确保文件一定被关闭，不用 finally。"
+    template: |
+      {{blank}} open("data.txt", encoding="utf-8") as f:
+          content = f.read()
+    blanks: [with]
+    explain: "with 会在离开代码块时自动调用 __exit__ 关闭资源，即使中途抛异常。自定义类实现 __enter__ / __exit__ 就能支持 with，或用 contextlib.contextmanager 装饰器。"
+    tags: [异常, 上下文管理器]
+    difficulty: 2
+
+  - qid: py-09-007
+    type: single
+    stem: "关于异常的性能，说法正确的是？"
+    options:
+      - text: 抛出和捕获异常的开销很大，不该用异常控制正常流程
+      - text: try 块本身几乎零成本，只有真的抛出异常时才慢
+      - text: Python 3.11 起零成本异常机制让 try 的开销进一步降低
+      - text: 异常比返回错误码慢得多，所以永远不要用异常
+    answer: [1]
+    explain: "设置 try 块几乎不花钱，代价发生在抛出时。所以「用 if 提前判断」和「try 捕获」的取舍要看异常是否罕见：罕见就 try，频繁就先判断。"
+    tags: [异常, 性能]
+    difficulty: 3
+
+  - qid: py-09-008
+    type: single
+    stem: "下面代码会抛出什么？`int('abc')`"
+    options:
+      - text: "TypeError"
+      - text: "ValueError"
+      - text: "KeyError"
+      - text: "SyntaxError"
+    answer: [1]
+    explain: "类型对但值不合法是 ValueError；类型本身不对（比如 int(None)）才是 TypeError。区分二者有助于写出精确的 except 子句。"
+    tags: [异常, 易错]
+    difficulty: 2

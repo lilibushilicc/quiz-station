@@ -1,0 +1,21 @@
+# 依赖
+node_modules/
+
+# VitePress 构建产物与缓存（都由 npm run build 重新生成）
+docs/.vitepress/dist/
+docs/.vitepress/cache/
+docs/.vitepress/.temp/
+docs/.vitepress/generated/
+
+# 运行时生成的题库索引与页面（构建时由 data/banks 生成）
+docs/public/banks.json
+docs/python/
+
+# 本机安全删除钩子的回收目录
+.trash/
+
+# 编辑器 / 系统
+.DS_Store
+*.log
+
+# 题库源 data/banks/ 要提交；其余忽略

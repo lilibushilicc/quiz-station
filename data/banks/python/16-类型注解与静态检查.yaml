@@ -1,0 +1,105 @@
+meta:
+  id: py-16
+  title: 类型注解与静态检查
+  source: 相关知识/Python/16-类型注解与静态检查.md
+  order: 16
+questions:
+  - qid: py-16-001
+    type: code
+    stem: "给函数加上参数与返回值注解。"
+    template: |
+      def greet(name: {{blank}}) -> {{blank}}:
+          return "hello " + name
+    blanks: [str, str]
+    explain: "语法是 参数: 类型 和 -> 返回类型。注解存在 __annotations__ 里，运行时不会被自动校验。"
+    tags: [类型注解]
+    difficulty: 1
+
+  - qid: py-16-002
+    type: multiple
+    stem: "关于 Union 与 Optional，正确的是？"
+    options:
+      - text: "Optional[int] 等价于 int | None"
+      - text: "Python 3.10 起可以写成 int | str"
+      - text: "Union 表示可以是其中任意一种类型"
+      - text: "Optional[int] 表示「这个参数可以省略」"
+    answer: [0, 1, 2]
+    explain: "Optional 只关乎值能否为 None，与参数是否有默认值无关。参数可省略要写默认值：def f(x: int | None = None)。"
+    tags: [类型注解, 易错]
+    difficulty: 2
+
+  - qid: py-16-003
+    type: single
+    stem: "给变量写上类型注解后，解释器会做什么？"
+    options:
+      - text: 运行时强制检查，类型不符就抛异常
+      - text: 只记录元数据，不做任何运行时校验
+      - text: 自动转换类型
+      - text: 让代码运行更快
+    answer: [1]
+    explain: "注解纯粹是元数据，真正的检查靠 mypy、pyright 这类静态工具，或者 pydantic、attrs 这类运行时校验库。"
+    tags: [类型注解, 易错]
+    difficulty: 2
+
+  - qid: py-16-004
+    type: code
+    stem: "定义一个泛型类型变量，让函数返回类型与入参类型保持一致。"
+    template: |
+      from typing import TypeVar
+
+      T = TypeVar({{blank}})
+
+      def first(items: list[T]) -> T: ...
+    blanks: ["'T'"]
+    explain: "TypeVar 让类型检查器在调用点推断并绑定具体类型。3.12 起可以用更简洁的 PEP 695 语法：def first[T](items: list[T]) -> T。"
+    tags: [泛型]
+    difficulty: 3
+
+  - qid: py-16-005
+    type: single
+    stem: "Protocol 解决的是什么问题？"
+    options:
+      - text: 给类强制添加方法
+      - text: 结构化子类型：只要实现了约定的方法就算符合要求，不必显式继承
+      - text: 运行时校验参数类型
+      - text: 自动生成接口文档
+    answer: [1]
+    explain: "它是鸭子类型的类型化表达，类似 Go 的 interface。加了 @runtime_checkable 之后还能用 isinstance 检查（只检查方法是否存在）。"
+    tags: [Protocol]
+    difficulty: 3
+
+  - qid: py-16-006
+    type: multiple
+    stem: "关于 TypedDict，正确的是？"
+    options:
+      - text: 给字典声明固定的键与对应值的类型
+      - text: 类型检查器能据此发现拼错的键名
+      - text: 运行时它就是普通的 dict，不做校验
+      - text: TypedDict 定义的字典不能增删键
+    answer: [0, 1, 2]
+    explain: "TypedDict 完全不影响运行时行为，想做运行时校验要用 pydantic 或 msgspec。"
+    tags: [TypedDict]
+    difficulty: 3
+
+  - qid: py-16-007
+    type: single
+    stem: "关于静态检查工具，说法正确的是？"
+    options:
+      - text: mypy 是唯一的选择
+      - text: pyright / pylance 在编辑器里反馈更快，mypy 生态成熟、插件多
+      - text: 静态检查能捕捉所有 bug
+      - text: 必须在 CI 里让检查失败阻止合并，否则毫无用处
+    answer: [1]
+    explain: "静态检查只能覆盖类型相关的错误，逻辑错误和运行时行为要靠测试。渐进式引入时可以只对新增代码开严格模式。"
+    tags: [工具链]
+    difficulty: 2
+
+  - qid: py-16-008
+    type: code
+    stem: "在还不支持新语法的旧版本里使用 3.10+ 的注解写法，需要这个导入。"
+    template: |
+      from {{blank}} import annotations
+    blanks: ["__future__"]
+    explain: "它会让所有注解变成字符串、延迟求值，从而可以在旧版本里写 list[int] 这类语法，也解决了前向引用的问题。"
+    tags: [类型注解]
+    difficulty: 3

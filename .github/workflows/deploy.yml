@@ -1,0 +1,42 @@
+name: Deploy Quiz Station
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-quiz
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate banks
+        run: npm run quiz:check
+
+      - name: Build site
+        run: npm run build
+
+      - name: Deploy to Cloudflare Pages + upload banks to R2
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          npx wrangler r2 object put noteandblog/quiz/banks.json \
+            --file docs/public/banks.json --remote
+          npx wrangler pages deploy docs/.vitepress/dist \
+            --project-name quiz-station --branch main

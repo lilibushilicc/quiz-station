@@ -1,0 +1,127 @@
+meta:
+  id: py-06
+  title: 字典与集合
+  source: 相关知识/Python/06-字典与集合.md
+  order: 6
+questions:
+  - qid: py-06-001
+    type: single
+    stem: "关于 `d['k']` 与 `d.get('k')` 的关键差异，正确的是？"
+    options:
+      - text: 两者完全等价，只是写法不同
+      - text: "键不存在时 [] 抛 KeyError，get() 返回 None（可指定默认值）"
+      - text: "get() 会在键不存在时自动插入该键"
+      - text: "[] 返回 None，get() 抛异常"
+    answer: [1]
+    explain: "d.get('k', default) 适合「取不到就用默认值」的场景；要明确区分「键不存在」和「值就是 None」时用 'k' in d 判断，而不是依赖 get 的返回值。"
+    tags: [字典, 易错]
+    difficulty: 2
+
+  - qid: py-06-002
+    type: code
+    stem: "统计一个可迭代对象里各元素的出现次数。"
+    template: |
+      from collections import Counter
+      counts = {{blank}}(words)
+    blanks: [Counter]
+    explain: "Counter 是 dict 的子类，自带 most_common(n)、加减合并等运算。手写的替代写法是用 dict.get(k, 0) + 1 累加，或者用 defaultdict(int)。"
+    tags: [collections]
+    difficulty: 1
+
+  - qid: py-06-003
+    type: multiple
+    stem: "关于字典的视图对象 keys()、values()、items()，正确的是？"
+    options:
+      - text: 视图是动态的，字典变化后视图内容随之变化
+      - text: "items() 可以直接用于 for k, v in ... 解包遍历"
+      - text: 视图支持 len() 和 in 判断
+      - text: "keys() 返回的是一个列表，可以 d.keys()[0] 取第一个"
+    answer: [0, 1, 2]
+    explain: "视图不是列表，不支持下标，需要列表时用 list(d.keys())。Python 3 里 keys/values/items 返回视图，Python 2 才返回列表。"
+    tags: [字典]
+    difficulty: 3
+
+  - qid: py-06-004
+    type: single
+    stem: "集合运算：已知 `a = {1, 2, 3}`、`b = {2, 3, 4}`，`a & b` 的结果是？"
+    options:
+      - text: "{1, 2, 3, 4}"
+      - text: "{2, 3}"
+      - text: "{1, 4}"
+      - text: "{1}"
+    answer: [1]
+    explain: "& 交集、| 并集、- 差集、^ 对称差集（只在一边出现的元素）。集合元素必须可哈希，所以列表不能放进集合。"
+    tags: [集合]
+    difficulty: 1
+
+  - qid: py-06-005
+    type: code
+    stem: "把两个字典合并成一个新字典（Python 3.9+ 的写法）。"
+    template: |
+      merged = a {{blank}} b
+    blanks: ["|"]
+    explain: "3.9 起支持 | 和 |= 合并字典，后面字典的同名键覆盖前面的。旧版本用 {**a, **b}，原地更新用 a.update(b)。"
+    tags: [字典]
+    difficulty: 2
+
+  - qid: py-06-006
+    type: multiple
+    stem: "哪些对象可以作为字典的键？"
+    options:
+      - text: "int / str / bool"
+      - text: "元素都可哈希的 tuple"
+      - text: "frozenset"
+      - text: "list"
+      - text: "dict"
+    answer: [0, 1, 2]
+    explain: "键必须可哈希，即可变对象一律不行：list、dict、set 都不能当键。需要「可变的键」时先转成 tuple 或 frozenset。"
+    tags: [哈希, 易错]
+    difficulty: 2
+
+  - qid: py-06-007
+    type: single
+    stem: "在 for 循环遍历字典的过程中给它新增或删除键，会发生什么？"
+    options:
+      - text: 正常运行
+      - text: "抛出 RuntimeError: dictionary changed size during iteration"
+      - text: 新增的键会被自动跳过
+      - text: 抛出 KeyError
+    answer: [1]
+    explain: "遍历中改大小会立刻抛 RuntimeError。要边遍历边改，先固定一份键列表：for k in list(d): ..."
+    tags: [字典, 易错]
+    difficulty: 3
+
+  - qid: py-06-008
+    type: code
+    stem: "给字典里不存在的键自动初始化一个空列表，用 collections 里的容器。"
+    template: |
+      from collections import defaultdict
+      groups = defaultdict({{blank}})
+      groups["a"].append(1)
+    blanks: [list]
+    explain: "defaultdict 的第一个参数是工厂函数，缺键时会自动调用它生成默认值。注意 groups[k] 会真的插入该键，只读场景要用 get。"
+    tags: [collections]
+    difficulty: 2
+
+  - qid: py-06-009
+    type: single
+    stem: "字典和集合查找元素平均是 O(1)，主要靠什么？"
+    options:
+      - text: 哈希表，用哈希值直接定位桶位
+      - text: 内部维护了有序数组，用二分查找
+      - text: 对每个键建立索引树
+      - text: 遍历时做了缓存
+    answer: [0]
+    explain: "底层是开放寻址的哈希表，代价是内存开销较大，且最坏情况（大量哈希冲突）会退化到 O(n)。Python 3.7+ 的字典同时保证插入顺序。"
+    tags: [原理]
+    difficulty: 3
+
+  - qid: py-06-010
+    type: code
+    stem: "用字典推导式把列表转成「元素到其长度」的映射。"
+    template: |
+      sizes = {w: {{blank}} {{blank}} w in words}
+    blanks: ["len(w)", "for"]
+    explain: "字典推导式形如 {键表达式: 值表达式 for 变量 in 可迭代对象 if 条件}，键重复时后面的覆盖前面的。"
+    tags: [推导式]
+    difficulty: 2

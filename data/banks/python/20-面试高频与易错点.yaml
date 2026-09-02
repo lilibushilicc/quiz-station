@@ -1,0 +1,137 @@
+meta:
+  id: py-20
+  title: 面试高频与易错点
+  source: 相关知识/Python/20-面试高频与易错点.md
+  order: 20
+questions:
+  - qid: py-20-001
+    type: single
+    stem: "下面代码的输出是什么？"
+    options:
+      - text: "[1, 2, 3] 和 [1, 2, 3]"
+      - text: "[1, 2, 3, 4] 和 [1, 2, 3, 4]"
+      - text: "[1, 2, 3, 4] 和 [1, 2, 3]"
+      - text: 报错
+    answer: [0]
+    explain: "题干对应的代码是 `a = [1, 2, 3]; b = a; a = a + [4]`，a + [4] 生成新列表并重新绑定 a，b 仍指向原列表。若改成 a.append(4) 则两者都会变成 [1,2,3,4]。"
+    tags: [引用, 易错]
+    difficulty: 3
+
+  - qid: py-20-002
+    type: single
+    stem: "`copy.copy(a)`（浅拷贝）与 `copy.deepcopy(a)` 的区别是？"
+    options:
+      - text: 没有区别
+      - text: 浅拷贝只复制最外层，嵌套的可变对象仍被共享；深拷贝递归复制所有层级
+      - text: 浅拷贝对不可变对象无效
+      - text: 深拷贝更快
+    answer: [1]
+    explain: "嵌套结构里改内层元素时，浅拷贝的两个对象会互相影响。判据是「改了副本，原对象会不会变」。"
+    tags: [拷贝, 易错]
+    difficulty: 2
+
+  - qid: py-20-003
+    type: code
+    stem: "去掉列表里重复的元素，同时保持原来的顺序。"
+    template: |
+      seen = set()
+      unique = [x for x in items if not (x in seen or seen.{{blank}}(x))]
+    blanks: [add]
+    explain: "经典写法是 `list(dict.fromkeys(items))`（键要求可哈希），语义更清晰。用 set 去重会丢失顺序。"
+    tags: [代码题]
+    difficulty: 3
+
+  - qid: py-20-004
+    type: single
+    stem: "关于 GIL，面试官最想听到的回答是？"
+    options:
+      - text: Python 的多线程是假的，完全没有用
+      - text: 它保证同一时刻只有一个线程执行字节码，IO 期间会释放，所以 IO 密集有效、CPU 密集要用多进程
+      - text: 去掉 GIL 即可让所有程序变快
+      - text: 只有 CPython 之外的实现才有 GIL
+    answer: [1]
+    explain: "补充要点：3.13 起有实验性的 free-threading 构建（PEP 703）；numpy 等 C 扩展会在计算时释放 GIL。"
+    tags: [GIL, 高频]
+    difficulty: 3
+
+  - qid: py-20-005
+    type: multiple
+    stem: "关于 *args 与 **kwargs，正确的是？"
+    options:
+      - text: "*args 收集多余的位置参数成元组"
+      - text: "**kwargs 收集多余的关键字参数成字典"
+      - text: 调用时 * 可以展开序列，** 可以展开字典
+      - text: "参数顺序可以是 def f(**kwargs, *args)"
+    answer: [0, 1, 2]
+    explain: "定义时顺序必须是 位置参数 → *args → 关键字参数 → **kwargs。顺序写错会直接 SyntaxError。"
+    tags: [参数, 高频]
+    difficulty: 2
+
+  - qid: py-20-006
+    type: single
+    stem: "一个对象能被 for 遍历，前提是？"
+    options:
+      - text: 实现了 __next__
+      - text: 实现了 __iter__ 并返回一个迭代器（或实现了 __getitem__ 的下标协议）
+      - text: 继承自 Iterable 类
+      - text: 是列表或字典
+    answer: [1]
+    explain: "for 会先调 iter(obj)。对象自身实现 __next__ 还不够，__iter__ 必须返回 self 才是迭代器。旧式的 __getitem__ 序列协议也能被迭代。"
+    tags: [迭代器, 高频]
+    difficulty: 3
+
+  - qid: py-20-007
+    type: code
+    stem: "补全装饰器，让它在函数调用前后打印日志，并保留原函数的元信息。"
+    template: |
+      import functools
+
+      def log(fn):
+          @functools.{{blank}}(fn)
+          def wrapper(*args, **kwargs):
+              print("call", fn.__name__)
+              return fn(*args, **kwargs)
+          return wrapper
+    blanks: [wraps]
+    explain: "没有 wraps 时 func.__name__ 会变成 'wrapper'，依赖函数名的框架（如 Flask 路由）会出问题。"
+    tags: [装饰器, 高频]
+    difficulty: 2
+
+  - qid: py-20-008
+    type: multiple
+    stem: "关于 Python 的内存管理，正确的是？"
+    options:
+      - text: 主要靠引用计数，计数归零即刻回收
+      - text: 另有循环垃圾回收器处理互相引用的对象
+      - text: del 只是删掉名字与对象的绑定，不等于释放内存
+      - text: 小整数和短字符串会被缓存复用
+    answer: [0, 1, 2, 3]
+    explain: "引用计数无法解决循环引用，所以才有分代 GC。sys.getrefcount(obj) 可以查看引用计数（注意调用本身会 +1）。"
+    tags: [内存, 高频]
+    difficulty: 3
+
+  - qid: py-20-009
+    type: single
+    stem: "`isinstance(True, int)` 的结果是？"
+    options:
+      - text: "True"
+      - text: "False"
+      - text: 报错
+      - text: 取决于 Python 版本
+    answer: [0]
+    explain: "bool 是 int 的子类，True == 1 成立。要排除布尔值需额外判断 not isinstance(x, bool)。"
+    tags: [类型, 高频]
+    difficulty: 2
+
+  - qid: py-20-010
+    type: single
+    stem: "列表推导式 `[x for x in range(5) if x % 2]` 的结果是？"
+    options:
+      - text: "[0, 2, 4]"
+      - text: "[1, 3]"
+      - text: "[0, 1, 2, 3, 4]"
+      - text: "[2, 4]"
+    answer: [1]
+    explain: "x % 2 为真时保留，即奇数 1 和 3。条件写在最后，多个 for 按从左到右的顺序嵌套。"
+    tags: [推导式]
+    difficulty: 1

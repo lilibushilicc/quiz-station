@@ -1,0 +1,112 @@
+meta:
+  id: py-01
+  title: Python 简介与环境搭建
+  source: 相关知识/Python/01-Python简介与环境搭建.md
+  order: 1
+questions:
+  - qid: py-01-001
+    type: single
+    stem: "`python app.py` 执行时，CPython 内部的处理顺序是？"
+    options:
+      - text: 直接把源码交给 CPU 逐行执行
+      - text: 先编译成字节码，再由 Python 虚拟机解释执行
+      - text: 先编译成机器码，再由 CPU 直接执行
+      - text: 先转成 Java 字节码，再交给 JVM 执行
+    answer: [1]
+    explain: "CPython 会先把 .py 编译成平台无关的字节码，缓存到 __pycache__/*.pyc，再由 PVM 逐条解释执行。所以 Python 属于「先编译、后解释」，不是纯解释型。"
+    tags: [运行机制]
+    difficulty: 2
+
+  - qid: py-01-002
+    type: boolean
+    stem: "删掉 __pycache__ 目录里的 .pyc 文件后，程序就跑不起来了。"
+    answer: [1]
+    explain: "__pycache__ 只是编译缓存，删掉后下次运行会重新生成，只是启动稍慢。发布时通常会把它加入 .gitignore。"
+    tags: [运行机制]
+    difficulty: 1
+
+  - qid: py-01-003
+    type: single
+    stem: "Windows 上用 py 启动器指定 3.11 版本运行脚本，正确的命令是？"
+    options:
+      - text: "py -3.11 app.py"
+      - text: "python311 app.py"
+      - text: "py --version 3.11 app.py"
+      - text: "python -3.11 app.py"
+    answer: [0]
+    explain: "py 启动器是 Windows 专属的版本选择工具，`py -3.11` 指定版本，`py -0` 列出已安装的全部版本。"
+    tags: [环境]
+    difficulty: 1
+
+  - qid: py-01-004
+    type: code
+    stem: "让 print 用短横线分隔、并且结尾不换行。"
+    template: |
+      print("a", "b", "c", sep={{blank}}, end={{blank}})
+    blanks: ["'-'", "''"]
+    explain: "sep 控制多个参数之间的分隔符，默认是空格；end 控制结尾字符，默认是换行符。两者设为对应值即可一行输出 a-b-c。"
+    tags: [print]
+    difficulty: 1
+
+  - qid: py-01-005
+    type: multiple
+    stem: "符合 PEP 8 代码风格的做法有哪些？"
+    options:
+      - text: 每层缩进用 4 个空格
+      - text: 用 Tab 缩进，一个 Tab 顶 4 个空格
+      - text: 代码行长度建议不超过 79 个字符
+      - text: 类名用大驼峰，函数和变量用小写加下划线
+    answer: [0, 2, 3]
+    explain: "PEP 8 建议 4 空格缩进、行宽 79（注释和文档字符串 72）、类名大驼峰、其余小写下划线。Tab 与空格不可混用。"
+    tags: [PEP 8]
+    difficulty: 2
+
+  - qid: py-01-006
+    type: single
+    stem: "同一代码块里混用 Tab 和空格缩进，会抛出什么？"
+    options:
+      - text: "IndentationError"
+      - text: "TabError"
+      - text: "SyntaxError"
+      - text: 不会报错，正常执行
+    answer: [1]
+    explain: "混用会抛 TabError，它是 IndentationError 的子类，而 IndentationError 又是 SyntaxError 的子类。Python 3 不再猜测 Tab 宽度，统一用 4 个空格最稳妥。"
+    tags: [缩进, 易错]
+    difficulty: 2
+
+  - qid: py-01-007
+    type: code
+    stem: "input() 拿到的永远是字符串，做数值比较前需要转换。"
+    template: |
+      age = {{blank}}(input("请输入年龄: "))
+      print(age > 18)
+    blanks: [int]
+    explain: "input() 返回 str，直接和整数比较会抛 TypeError。需要做显式类型转换，生产代码还应处理输入非法的情况。"
+    tags: [input, 易错]
+    difficulty: 1
+
+  - qid: py-01-008
+    type: multiple
+    stem: "关于 Python 的各种实现，说法正确的是？"
+    options:
+      - text: CPython 用 C 写成，是最常用的参考实现
+      - text: PyPy 带 JIT 编译，很多场景比 CPython 快
+      - text: Jython 运行在 JVM 上，可以调用 Java 类库
+      - text: Python 语言只有 CPython 一种实现
+    answer: [0, 1, 2]
+    explain: "除 CPython 外还有 PyPy（JIT）、Jython（JVM）、IronPython（.NET）等实现。平时说的「Python」默认指 CPython。"
+    tags: [生态]
+    difficulty: 2
+
+  - qid: py-01-009
+    type: single
+    stem: "Python 里写多行说明文字（docstring）通常用？"
+    options:
+      - text: "/* 说明 */"
+      - text: 三个连续引号包裹的字符串
+      - text: "// 说明"
+      - text: 连续多行以 # 开头
+    answer: [1]
+    explain: "Python 没有专门的多行注释语法。文档字符串用三引号，写在模块、类、函数的第一行，可通过 __doc__ 访问；普通注释用 #。"
+    tags: [注释]
+    difficulty: 1
