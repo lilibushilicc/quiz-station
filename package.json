@@ -7,7 +7,6 @@
     "dev": "node scripts/spawn-node.mjs inner-dev.mjs",
     "build": "node scripts/spawn-node.mjs inner-build.mjs",
     "preview": "vitepress preview docs",
-    "deploy": "node scripts/spawn-node.mjs deploy-inner.mjs",
     "quiz:check": "node scripts/check-banks.mjs",
     "quiz:sync": "node scripts/spawn-node.mjs inner-banks.mjs"
   },
@@ -16,7 +15,6 @@
   },
   "devDependencies": {
     "js-yaml": "^4.1.0",
-    "vitepress": "^1.6.3",
-    "wrangler": "^4.0.0"
+    "vitepress": "^1.6.3"
   }
 }
