@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { useBanks } from '../composables/useBanks.js'
 import { bankStats, exportProgress, importProgress } from '../composables/progress.js'
 import { bankSummary } from '../composables/stats.js'
+import QuizState from './QuizState.vue'
 
 const { data, loading, error } = useBanks()
 const msg = ref('')
@@ -29,20 +30,27 @@ const recent = computed(() => {
   }).filter(Boolean)
 })
 
-function catStats(cat) {
-  let total = 0
-  let mastered = 0
-  let wrong = 0
-  for (const b of cat.banks) {
-    const bank = data.value?.banks?.[b.id]
-    if (!bank) continue
-    const s = bankSummary(bank)
-    total += s.total
-    mastered += s.mastered
-    wrong += s.wrong
+/* 按分类 id 记忆化统计：进度(bankStats)或题库(data)变化时只重算一次，
+   避免模板里每张卡片重复遍历全题库 */
+const catStatsMap = computed(() => {
+  const map = {}
+  const banks = data.value?.banks || {}
+  for (const c of data.value?.categories || []) {
+    let total = 0
+    let mastered = 0
+    let wrong = 0
+    for (const b of c.banks) {
+      const bank = banks[b.id]
+      if (!bank) continue
+      const s = bankSummary(bank)
+      total += s.total
+      mastered += s.mastered
+      wrong += s.wrong
+    }
+    map[c.id] = { total, mastered, wrong, rate: total ? Math.round((mastered / total) * 100) : 0 }
   }
-  return { total, mastered, wrong, rate: total ? Math.round((mastered / total) * 100) : 0 }
-}
+  return map
+})
 
 function ring(rate) {
   const r = 15
@@ -75,7 +83,8 @@ async function onImport(e) {
 
 <template>
   <div class="hp">
-    <section class="hp-hero">
+    <QuizState :loading="loading" :error="error">
+      <section class="hp-hero">
       <p class="hp-kicker">QUIZ STATION</p>
       <h1>知识点掌握巩固</h1>
       <p class="hp-sub">把笔记变成题目，随时检验自己到底掌握了多少。进度保存在本地浏览器。</p>
@@ -87,10 +96,6 @@ async function onImport(e) {
       </div>
     </section>
 
-    <div v-if="loading" class="hp-empty">正在加载题库…</div>
-    <div v-else-if="error" class="hp-empty err">{{ error }}</div>
-
-    <template v-else>
       <section v-if="recent.length" class="hp-recent">
         <h2>继续上次</h2>
         <div class="hp-recent-list">
@@ -116,23 +121,23 @@ async function onImport(e) {
                 <p>{{ c.desc }}</p>
               </div>
               <svg class="hp-ring" viewBox="0 0 36 36" width="42" height="42">
-                <circle cx="18" cy="18" :r="ring(catStats(c)).r" fill="none" stroke="var(--q-border)" stroke-width="3" />
+                <circle cx="18" cy="18" :r="ring(catStatsMap[c.id].rate).r" fill="none" stroke="var(--q-border)" stroke-width="3" />
                 <circle
                   cx="18" cy="18"
-                  :r="ring(catStats(c)).r"
+                  :r="ring(catStatsMap[c.id].rate).r"
                   fill="none"
                   stroke="var(--q-ok)"
                   stroke-width="3"
                   stroke-linecap="round"
-                  :stroke-dasharray="ring(catStats(c)).dash"
+                  :stroke-dasharray="ring(catStatsMap[c.id].rate).dash"
                   transform="rotate(-90 18 18)"
                 />
               </svg>
             </div>
             <div class="hp-card-foot">
-              <span>{{ c.banks.length }} 个文件 · {{ catStats(c).total }} 题</span>
-              <span v-if="catStats(c).wrong" class="warn">{{ catStats(c).wrong }} 待复习</span>
-              <span v-else class="dim">{{ catStats(c).rate }}% 掌握</span>
+              <span>{{ c.banks.length }} 个文件 · {{ catStatsMap[c.id].total }} 题</span>
+              <span v-if="catStatsMap[c.id].wrong" class="warn">{{ catStatsMap[c.id].wrong }} 待复习</span>
+              <span v-else class="dim">{{ catStatsMap[c.id].rate }}% 掌握</span>
             </div>
           </a>
         </div>
@@ -152,7 +157,7 @@ async function onImport(e) {
         </div>
         <p class="hp-note">进度以题目 id 为键保存，改题、加题都不会清空已记录的进度。</p>
       </section>
-    </template>
+    </QuizState>
   </div>
 </template>
 
@@ -355,16 +360,5 @@ async function onImport(e) {
   margin: 12px 0 0;
   font-size: 12.5px;
   color: var(--q-text-faint);
-}
-
-.hp-empty {
-  padding: 30px;
-  text-align: center;
-  color: var(--q-text-faint);
-  border: 1px dashed var(--q-border);
-  border-radius: var(--q-radius);
-}
-.hp-empty.err {
-  color: var(--q-bad);
 }
 </style>

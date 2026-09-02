@@ -4,6 +4,7 @@ import { useBanks } from '../composables/useBanks.js'
 import { progress, resetBank } from '../composables/progress.js'
 import { isWrong } from '../composables/stats.js'
 import QuizCard from './QuizCard.vue'
+import QuizState from './QuizState.vue'
 
 const { data, loading, error } = useBanks()
 const groupByBank = ref(true)
@@ -36,11 +37,8 @@ function clearAll() {
       <p>汇总所有分类里答错过、且还没标记为「已掌握」的题目。</p>
     </header>
 
-    <div v-if="loading" class="rv-empty">正在加载题库…</div>
-    <div v-else-if="error" class="rv-empty err">{{ error }}</div>
-    <div v-else-if="!total" class="rv-empty">暂时没有错题，去<router-link to="/"> 分类练习 </router-link>刷几套吧。</div>
-
-    <template v-else>
+    <QuizState :loading="loading" :error="error" :empty="!total">
+      <template #empty>暂时没有错题，去<router-link to="/"> 分类练习 </router-link>刷几套吧。</template>
       <div class="rv-tools">
         <span>共 {{ total }} 道待复习，分布在 {{ wrongGroups.length }} 个文件</span>
         <div class="rv-right">
@@ -64,13 +62,13 @@ function clearAll() {
       <div v-else class="rv-list">
         <QuizCard v-for="(q, i) in flat" :key="q.qid + '-' + nonces" :q="q" :index="i" />
       </div>
-    </template>
+    </QuizState>
   </div>
 </template>
 
 <style scoped>
 .rv {
-  max-width: 820px;
+  max-width: 880px;
 }
 .rv-head h1 {
   font-size: 25px;
@@ -137,16 +135,5 @@ function clearAll() {
   display: flex;
   flex-direction: column;
   gap: 14px;
-}
-.rv-empty {
-  padding: 34px;
-  text-align: center;
-  font-size: 13.5px;
-  color: var(--q-text-faint);
-  border: 1px dashed var(--q-border);
-  border-radius: var(--q-radius);
-}
-.rv-empty.err {
-  color: var(--q-bad);
 }
 </style>

@@ -4,6 +4,7 @@ import { useBanks } from '../composables/useBanks.js'
 import { progress, resetBank } from '../composables/progress.js'
 import { bankSummary, isMastered, isWrong } from '../composables/stats.js'
 import QuizCard from './QuizCard.vue'
+import QuizState from './QuizState.vue'
 
 const props = defineProps({ id: { type: String, required: true } })
 
@@ -43,11 +44,7 @@ function resetAll() {
 
 <template>
   <div class="qp">
-    <div v-if="loading" class="qp-empty">正在加载题库…</div>
-    <div v-else-if="error" class="qp-empty err">{{ error }}</div>
-    <div v-else-if="!bank" class="qp-empty err">找不到题库「{{ id }}」</div>
-
-    <template v-else>
+    <QuizState :loading="loading" :error="error" :empty="!bank" :empty-text="`找不到题库「${id}」`">
       <header class="qp-head">
         <div class="qp-crumb">
           <a href="/">知识点掌握巩固</a>
@@ -100,13 +97,13 @@ function resetAll() {
         <span>下一篇</span>
         <a :href="`/${bank.category}/${nextLink.slug}`">{{ nextLink.title }} →</a>
       </footer>
-    </template>
+    </QuizState>
   </div>
 </template>
 
 <style scoped>
 .qp {
-  max-width: 820px;
+  max-width: 880px;
 }
 .qp-head {
   margin-bottom: 20px;
@@ -231,10 +228,6 @@ function resetAll() {
   color: var(--q-text-faint);
   border: 1px dashed var(--q-border);
   border-radius: var(--q-radius);
-}
-.qp-empty.err {
-  color: var(--q-bad);
-  border-color: var(--q-bad-soft);
 }
 
 .qp-next {

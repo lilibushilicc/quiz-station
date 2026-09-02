@@ -33,8 +33,6 @@ const order = computed(() => {
   return idx
 })
 
-const shownOptions = computed(() => order.value.map((i) => ({ i, text: props.q.options[i].text })))
-
 const picked = ref([])
 const blanks = ref([])
 const submitted = ref(false)
@@ -128,7 +126,7 @@ const codeParts = computed(() => {
   return t.split(/\{\{\s*blank\s*\}\}/)
 })
 
-function optionState(i) {
+function stateOf(i) {
   if (!submitted.value) return picked.value.includes(i) ? 'picked' : ''
   const isRight = props.q.answer.includes(i)
   const isPicked = picked.value.includes(i)
@@ -136,6 +134,16 @@ function optionState(i) {
   if (isPicked) return 'wrong'
   return ''
 }
+
+/* 每个选项的静态视图（序号/字母/文本/状态）一次性算好，模板不再重复调用 stateOf */
+const optionViews = computed(() =>
+  order.value.map((i) => ({
+    i,
+    letter: letters[i],
+    text: props.q.options[i].text,
+    state: stateOf(i),
+  })),
+)
 </script>
 
 <template>
@@ -157,21 +165,21 @@ function optionState(i) {
 
     <div v-if="q.options" class="q-options">
       <button
-        v-for="(o, k) in shownOptions"
+        v-for="o in optionViews"
         :key="o.i"
         class="q-option"
-        :class="optionState(o.i)"
+        :class="o.state"
         :disabled="submitted"
         @click="toggle(o.i)"
       >
-          <span class="q-letter">{{ letters[k] }}</span>
+          <span class="q-letter">{{ o.letter }}</span>
           <span class="q-text" v-html="rich(o.text)"></span>
           <span
-            v-if="submitted && (optionState(o.i) === 'right' || optionState(o.i) === 'wrong')"
+            v-if="submitted && (o.state === 'right' || o.state === 'wrong')"
             class="q-mark"
-            :class="optionState(o.i)"
+            :class="o.state"
           >
-            <svg v-if="optionState(o.i) === 'right'" viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
+            <svg v-if="o.state === 'right'" viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
               <path d="M3 8.5l3.2 3.2L13 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
             <svg v-else viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
